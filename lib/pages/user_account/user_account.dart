@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/layouts/base_layout.dart';
+
 
 class UserAccountPage extends StatelessWidget {
   const UserAccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      title: 'User Account',
-      child: Padding(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Account'),
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -46,3 +48,4 @@ class UserAccountPage extends StatelessWidget {
     );
   }
 }
+

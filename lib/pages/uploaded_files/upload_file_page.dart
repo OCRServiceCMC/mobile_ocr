@@ -163,9 +163,10 @@ class _UploadFilePageState extends State<UploadFilePage> {
         await http.MultipartFile.fromPath(
           'file',
           _selectedFile!.path!,
-          contentType: MediaType('application', 'octet-stream'),
+          contentType: MediaType.parse(mimeType), // Sử dụng MIME type chính xác
         ),
       );
+
 
     try {
       var response = await request.send();

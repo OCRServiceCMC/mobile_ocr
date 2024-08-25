@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart'; // Import để sử dụng Clipboard
 
 class ImageToBase64Page extends StatefulWidget {
   const ImageToBase64Page({super.key});
@@ -54,6 +55,15 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
     }
   }
 
+  void _copyBase64ToClipboard() {
+    if (_base64String != null) {
+      Clipboard.setData(ClipboardData(text: _base64String!)); // Sử dụng toán tử `!`
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Base64 string copied to clipboard')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,15 +82,36 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
             const SizedBox(height: 20),
             _base64String != null
                 ? Expanded(
-              child: SingleChildScrollView(
-                child: SelectableText(
-                  _base64String!,
-                  style: const TextStyle(fontSize: 12),
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          _base64String!,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _copyBase64ToClipboard,
+                      child: const Text('Copy Base64'),
+                    ),
+                  ],
                 ),
               ),
             )
-                : const Center(
-              child: Text('No image selected'),
+                : const Expanded(
+              child: Center(
+                child: Text('No image selected'),
+              ),
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/register.dart'; // Import the register page
+import 'package:flutter_application_1/pages/auth/register.dart'; // Import the register page
 import 'package:flutter_application_1/pages/home/user_home.dart'; // Import the UserHomePage
 import 'package:flutter_application_1/pages/home/admin_home.dart'; // Import the AdminHomePage
 

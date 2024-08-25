@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/auth/login.dart';
-import 'package:flutter_application_1/pages/account.dart';
 
-class UserHomePage extends StatelessWidget {
-  const UserHomePage({super.key});
+class BaseLayout extends StatelessWidget {
+  final Widget child;
+  final String title;
+
+  const BaseLayout({super.key, required this.child, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home Page'),
+        title: Text(title),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
+              // Add navigation to login or other actions
             },
             child: const Text(
               'Login',
-              style: TextStyle(color: Colors.black),
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -36,7 +34,7 @@ class UserHomePage extends StatelessWidget {
               child: Text(
                 'Drawer Header',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontSize: 24,
                 ),
               ),
@@ -52,36 +50,20 @@ class UserHomePage extends StatelessWidget {
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
-                // Navigate to settings page (if you have one)
+                // Navigate to settings page
               },
             ),
             ListTile(
               leading: const Icon(Icons.info),
               title: const Text('About'),
               onTap: () {
-                // Navigate to about page (if you have one)
+                // Navigate to about page
               },
             ),
           ],
         ),
       ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Welcome to the Home Page!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'This is a simple welcome layout. You can navigate through the app using the buttons below.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-
+      body: child,
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
@@ -89,19 +71,10 @@ class UserHomePage extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-                Icons.person), // Changed icon to person to reflect user account
-            label: 'Account', // Changed label to Account
+            icon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UserAccountPage()),
-            );
-          }
-        },
       ),
     );
   }

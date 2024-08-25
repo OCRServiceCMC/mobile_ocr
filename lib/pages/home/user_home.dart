@@ -1,26 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/auth/login.dart';
-import 'package:flutter_application_1/pages/account.dart';
+import 'package:flutter_application_1/component/custom_app_bar.dart'; // Import CustomAppBar
+import 'package:flutter_application_1/pages/loginregister/login.dart';
+import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 
-class UserHomePage extends StatelessWidget {
+class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
+
+  @override
+  _UserHomePageState createState() => _UserHomePageState();
+}
+
+class _UserHomePageState extends State<UserHomePage> {
+  bool _isLoggedIn = false;
+
+  void _toggleLoginState() {
+    setState(() {
+      _isLoggedIn = !_isLoggedIn;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
+      appBar: CustomAppBar(
+        title: 'Home Page',
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
+              if (_isLoggedIn) {
+                // Xử lý Logout
+                _toggleLoginState();
+                // Điều hướng hoặc thực hiện các hành động khác nếu cần
+              } else {
+                // Điều hướng đến trang Login
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                ).then((_) {
+                  // Giả sử người dùng đã đăng nhập thành công, chúng ta thay đổi trạng thái
+                  _toggleLoginState();
+                });
+              }
             },
-            child: const Text(
-              'Login',
-              style: TextStyle(color: Colors.black),
+            child: Text(
+              _isLoggedIn ? 'Login' : 'Logout',
+              style: const TextStyle(color: Colors.black),
             ),
           ),
         ],
@@ -49,17 +73,13 @@ class UserHomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+              leading: const Icon(Icons.upload_file),
+              title: const Text('Upload File'),
               onTap: () {
-                // Navigate to settings page (if you have one)
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('About'),
-              onTap: () {
-                // Navigate to about page (if you have one)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UploadFilePage()),
+                );
               },
             ),
           ],

@@ -15,8 +15,45 @@ class _UploadFilePageState extends State<UploadFilePage> {
   String? _selectedFileName;
   PlatformFile? _selectedFile;
   bool _isUploading = false;
+  List<String> _userFiles = [];
 
-  Future<void> _selectFile() async {
+  // Hàm lấy danh sách file từ API
+  Future<void> _fetchUserFiles() async {
+    // Thay thế bằng token thực tế của bạn
+    String token = 'your_bearer_token_here';
+    String url = 'http://10.0.2.2:8081/api/auth/user/files/list';
+
+    try {
+      var response = await http.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> files = jsonDecode(response.body);
+        if (files.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No files found for this user.')),
+          );
+        } else {
+          setState(() {
+            _userFiles = files.map((file) => file['fileName'] as String).toList();
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to fetch files.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred while fetching files.')),
+      );
+    }
+  }
+
+// Hàm chọn file từ storage của thiết bị
+  Future<void> _selectFileFromStorage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.any,
     );
@@ -26,9 +63,17 @@ class _UploadFilePageState extends State<UploadFilePage> {
         _selectedFile = result.files.first;
         _selectedFileName = _selectedFile?.name;
       });
+    } else {
+      setState(() {
+        _selectedFileName = 'No file selected';
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No file selected.')),
+        );
+      });
     }
   }
 
+  // Hàm upload file lên API
   Future<void> _uploadFile() async {
     if (_selectedFile == null) return;
 
@@ -57,6 +102,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File uploaded successfully!')),
         );
+        // Refresh file list after upload
+        _fetchUserFiles();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to upload file.')),
@@ -74,6 +121,12 @@ class _UploadFilePageState extends State<UploadFilePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchUserFiles(); // Fetch files when the page loads
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -84,17 +137,16 @@ class _UploadFilePageState extends State<UploadFilePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_selectedFileName != null)
-              Text(
-                'Selected File: $_selectedFileName',
-                style: const TextStyle(fontSize: 16),
+            if (_userFiles.isNotEmpty)
+              Column(
+                children: _userFiles.map((file) => Text(file)).toList(),
               )
             else
               const Text('No file selected.', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _selectFile,
-              child: const Text('Select File'),
+              onPressed: _selectFileFromStorage,
+              child: const Text('Select File from Storage'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

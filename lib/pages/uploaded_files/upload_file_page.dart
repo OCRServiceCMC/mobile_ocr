@@ -7,7 +7,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
 
-
 class UploadFilePage extends StatefulWidget {
   const UploadFilePage({super.key});
 
@@ -19,6 +18,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
   String? _selectedFileName;
   PlatformFile? _selectedFile;
   bool _isUploading = false;
+  bool _isLoading = true; // Thêm biến để kiểm tra trạng thái tải
   List<Map<String, dynamic>> _userFiles = [];
 
   // Hàm lấy token từ SharedPreferences
@@ -29,11 +29,18 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
   // Hàm lấy danh sách file từ API
   Future<void> _fetchUserFiles() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     String? token = await _getToken(); // Lấy token từ session
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token found.')),
       );
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
@@ -66,6 +73,10 @@ class _UploadFilePageState extends State<UploadFilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('An error occurred while fetching files.')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -167,7 +178,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ),
       );
 
-
     try {
       var response = await request.send();
 
@@ -250,10 +260,22 @@ class _UploadFilePageState extends State<UploadFilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token found.')),
       );
+      setState(() {
+        _isUploading = false;
+      });
       return;
     }
 
     String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+
+    // Xác định loại MIME dựa trên phần mở rộng của tệp
+    String mimeType = _selectedFile!.extension == 'pdf'
+        ? 'application/pdf'
+        : _selectedFile!.extension == 'png'
+        ? 'image/png'
+        : _selectedFile!.extension == 'jpg' || _selectedFile!.extension == 'jpeg'
+        ? 'image/jpeg'
+        : 'application/octet-stream';
 
     var request = http.MultipartRequest('PUT', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
@@ -261,6 +283,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         await http.MultipartFile.fromPath(
           'file',
           _selectedFile!.path!,
+          contentType: MediaType.parse(mimeType), // Sử dụng MIME type chính xác
         ),
       );
 
@@ -305,7 +328,9 @@ class _UploadFilePageState extends State<UploadFilePage> {
         child: Column(
           children: [
             Expanded(
-              child: _userFiles.isNotEmpty
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator()) // Thêm loading indicator
+                  : _userFiles.isNotEmpty
                   ? ListView.builder(
                 itemCount: _userFiles.length,
                 itemBuilder: (context, index) {
@@ -314,30 +339,33 @@ class _UploadFilePageState extends State<UploadFilePage> {
                   String fileType = file['fileType'];
                   String base64Thumbnail = file['thumbnail'];
 
-                  return ListTile(
-                    leading: fileType == 'PDF'
-                        ? Icon(Icons.picture_as_pdf)
-                        : base64Thumbnail != null
-                        ? Image.memory(
-                      base64Decode(base64Thumbnail),
-                      width: 50,
-                      height: 50,
-                    )
-                        : Icon(Icons.insert_drive_file),
-                    title: Text(documentName),
-                    subtitle: Text("Type: $fileType | Size: ${file['fileSize']} bytes"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () => _editFile(file['fileID']),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () => _deleteFile(file['fileID']),
-                        ),
-                      ],
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      leading: fileType == 'PDF'
+                          ? Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
+                          : base64Thumbnail != null
+                          ? Image.memory(
+                        base64Decode(base64Thumbnail),
+                        width: 50,
+                        height: 50,
+                      )
+                          : Icon(Icons.insert_drive_file, size: 40),
+                      title: Text(documentName, style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text("Type: $fileType | Size: ${file['fileSize']} bytes"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _editFile(file['fileID']),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteFile(file['fileID']),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -356,28 +384,38 @@ class _UploadFilePageState extends State<UploadFilePage> {
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.blue, width: 2),
                   borderRadius: BorderRadius.circular(5),
+                  color: Colors.blue.withOpacity(0.1),
                 ),
                 child: Column(
                   children: [
-                    const Text('Selected File:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(_selectedFileName ?? 'No file selected'),
+                    const Text('Selected File:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(_selectedFileName ?? 'No file selected', style: TextStyle(fontSize: 14)),
                   ],
                 ),
               ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _selectFileFromStorage,
-              child: const Text('Select File from Storage'),
+              icon: Icon(Icons.upload_file),
+              label: const Text('Select File from Storage'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+                textStyle: TextStyle(fontSize: 16),
+              ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _isUploading ? null : _uploadFile,
-              child: _isUploading
+              icon: _isUploading
                   ? const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               )
-                  : const Text('Upload File'),
+                  : Icon(Icons.cloud_upload),
+              label: const Text('Upload File'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+                textStyle: TextStyle(fontSize: 16),
+              ),
             ),
           ],
         ),

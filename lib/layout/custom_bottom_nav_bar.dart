@@ -1,5 +1,5 @@
-// lib/layout/custom_bottom_nav_bar.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/user_account/user_account.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -15,15 +15,24 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      onTap: onTap,
+      onTap: (index) {
+        if (index == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const UserAccountPage()),
+          );
+        } else {
+          onTap(index); // Continue with the original onTap logic
+        }
+      },
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Settings',
+          icon: Icon(Icons.person), // Changed icon to person to represent account
+          label: 'Account',          // Changed label to Account
         ),
       ],
     );

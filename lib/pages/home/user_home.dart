@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/loginregister/login.dart';
+import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -48,17 +49,13 @@ class UserHomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+              leading: const Icon(Icons.upload_file),
+              title: const Text('Upload File'),
               onTap: () {
-                // Navigate to settings page (if you have one)
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('About'),
-              onTap: () {
-                // Navigate to about page (if you have one)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UploadFilePage()),
+                );
               },
             ),
           ],

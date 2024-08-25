@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/home/user_home.dart';
-
+import 'package:flutter_application_1/pages/loginregister/login.dart';
+import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,13 +14,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
-      home: const UserHomePage(), // Set LoginPage as the home page
+      home: const LoginPage(),
+      routes: {
+        '/upload': (context) => const UploadFilePage(),
+      },
     );
   }
 }
+
 
 //TODO: Front End Mobile. '?' là chưa làm. 
 // Login, Register (Thành)

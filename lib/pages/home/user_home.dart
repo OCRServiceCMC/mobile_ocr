@@ -1,5 +1,7 @@
+// lib/pages/home/user_home.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/component/custom_app_bar.dart'; // Import CustomAppBar
+import 'package:flutter_application_1/layout/custom_app_bar.dart'; // Import CustomAppBar
+import 'package:flutter_application_1/layout/custom_drawer.dart'; // Import CustomDrawer
 import 'package:flutter_application_1/pages/loginregister/login.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 import 'package:flutter_application_1/pages/user_account/user_account.dart';
@@ -29,16 +31,12 @@ class _UserHomePageState extends State<UserHomePage> {
           TextButton(
             onPressed: () {
               if (_isLoggedIn) {
-                // Xử lý Logout
                 _toggleLoginState();
-                // Điều hướng hoặc thực hiện các hành động khác nếu cần
               } else {
-                // Điều hướng đến trang Login
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginPage()),
                 ).then((_) {
-                  // Giả sử người dùng đã đăng nhập thành công, chúng ta thay đổi trạng thái
                   _toggleLoginState();
                 });
               }
@@ -50,42 +48,7 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Drawer Header',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.upload_file),
-              title: const Text('Upload File'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const UploadFilePage()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const CustomDrawer(), // Sử dụng CustomDrawer ở đây
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

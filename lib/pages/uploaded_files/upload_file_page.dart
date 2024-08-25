@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UploadFilePage extends StatefulWidget {
   const UploadFilePage({super.key});
@@ -15,12 +17,24 @@ class _UploadFilePageState extends State<UploadFilePage> {
   String? _selectedFileName;
   PlatformFile? _selectedFile;
   bool _isUploading = false;
-  List<String> _userFiles = [];
+  List<Map<String, dynamic>> _userFiles = [];
+
+  // Hàm lấy token từ SharedPreferences
+  Future<String?> _getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
 
   // Hàm lấy danh sách file từ API
   Future<void> _fetchUserFiles() async {
-    // Thay thế bằng token thực tế của bạn
-    String token = 'your_bearer_token_here';
+    String? token = await _getToken(); // Lấy token từ session
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
     String url = 'http://10.0.2.2:8081/api/auth/user/files/list';
 
     try {
@@ -31,13 +45,15 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
       if (response.statusCode == 200) {
         List<dynamic> files = jsonDecode(response.body);
+
         if (files.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No files found for this user.')),
           );
         } else {
           setState(() {
-            _userFiles = files.map((file) => file['fileName'] as String).toList();
+            // Chuyển đổi các phần tử trong danh sách thành Map<String, dynamic>
+            _userFiles = files.map((file) => file as Map<String, dynamic>).toList();
           });
         }
       } else {
@@ -52,37 +68,64 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
-// Hàm chọn file từ storage của thiết bị
+  // Hàm chọn file từ storage của thiết bị
   Future<void> _selectFileFromStorage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
+    PermissionStatus status = await Permission.storage.request();
 
-    if (result != null && result.files.isNotEmpty) {
-      setState(() {
-        _selectedFile = result.files.first;
-        _selectedFileName = _selectedFile?.name;
-      });
+    if (status.isGranted) {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _selectedFile = result.files.first;
+          _selectedFileName = _selectedFile?.name;
+        });
+        print('File selected: $_selectedFileName');
+        print('File path: ${_selectedFile?.path}');
+      } else {
+        setState(() {
+          _selectedFileName = 'No file selected';
+        });
+        print('No file selected');
+      }
     } else {
-      setState(() {
-        _selectedFileName = 'No file selected';
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No file selected.')),
-        );
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permission denied to access storage.')),
+      );
+      print('Permission denied');
     }
   }
 
   // Hàm upload file lên API
   Future<void> _uploadFile() async {
-    if (_selectedFile == null) return;
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No file selected to upload.')),
+      );
+      return;
+    }
+
+    if (!File(_selectedFile!.path!).existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selected file does not exist.')),
+      );
+      return;
+    }
 
     setState(() {
       _isUploading = true;
     });
 
-    // Thay thế bằng token thực tế của bạn
-    String token = 'your_bearer_token_here';
+    String? token = await _getToken(); // Lấy token từ session
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
     String url = 'http://10.0.2.2:8081/api/auth/user/files/upload';
 
     var request = http.MultipartRequest('POST', Uri.parse(url))
@@ -102,8 +145,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File uploaded successfully!')),
         );
-        // Refresh file list after upload
-        _fetchUserFiles();
+        _fetchUserFiles(); // Refresh file list after upload
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to upload file.')),
@@ -138,11 +180,20 @@ class _UploadFilePageState extends State<UploadFilePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (_userFiles.isNotEmpty)
-              Column(
-                children: _userFiles.map((file) => Text(file)).toList(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _userFiles.length,
+                  itemBuilder: (context, index) {
+                    var file = _userFiles[index];
+                    return ListTile(
+                      title: Text(file['fileName']),
+                      subtitle: Text("Type: ${file['fileType']} | Size: ${file['fileSize']} bytes"),
+                    );
+                  },
+                ),
               )
             else
-              const Text('No file selected.', style: TextStyle(fontSize: 16)),
+              const Text('No files found for this user.', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _selectFileFromStorage,

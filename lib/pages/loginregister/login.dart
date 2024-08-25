@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_application_1/pages/loginregister/register.dart';
 import 'package:flutter_application_1/pages/home/user_home.dart';
 import 'package:flutter_application_1/pages/home/admin_home.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import thư viện
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -30,10 +31,13 @@ class LoginPage extends StatelessWidget {
         // API trả về Bearer Token dưới dạng văn bản
         String token = response.body;
 
-        // Bạn có thể lưu token vào bộ nhớ cục bộ hoặc biến toàn cục nếu cần thiết
+        // Lưu token vào SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('authToken', token);
+
         print('Received token: $token');
 
-        // Tạm thời giả định rằng bạn sẽ dựa vào username để điều hướng
+        // Điều hướng dựa vào username
         if (username == 'admin') {
           Navigator.pushReplacement(
             context,

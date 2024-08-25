@@ -1,6 +1,7 @@
 // lib/layout/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
+import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -37,6 +38,16 @@ class CustomDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const UploadFilePage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.upload_file),
+            title: const Text('OCR Image'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ImageToBase64Page()),
               );
             },
           ),

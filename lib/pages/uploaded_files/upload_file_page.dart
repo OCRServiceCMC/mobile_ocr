@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http_parser/http_parser.dart';
+
 
 class UploadFilePage extends StatefulWidget {
   const UploadFilePage({super.key});
@@ -52,7 +54,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
           );
         } else {
           setState(() {
-            // Chuyển đổi các phần tử trong danh sách thành Map<String, dynamic>
             _userFiles = files.map((file) => file as Map<String, dynamic>).toList();
           });
         }
@@ -66,6 +67,12 @@ class _UploadFilePageState extends State<UploadFilePage> {
         const SnackBar(content: Text('An error occurred while fetching files.')),
       );
     }
+  }
+
+  // Hàm kiểm tra loại file hợp lệ
+  bool _isValidFileType(String fileName) {
+    String ext = fileName.split('.').last.toLowerCase();
+    return ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'pdf';
   }
 
   // Hàm chọn file từ storage của thiết bị
@@ -82,6 +89,19 @@ class _UploadFilePageState extends State<UploadFilePage> {
           _selectedFile = result.files.first;
           _selectedFileName = _selectedFile?.name;
         });
+
+        // Kiểm tra loại file
+        if (!_isValidFileType(_selectedFileName!)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Only JPG, PNG, and PDF files are allowed.')),
+          );
+          setState(() {
+            _selectedFile = null;
+            _selectedFileName = null;
+          });
+          return;
+        }
+
         print('File selected: $_selectedFileName');
         print('File path: ${_selectedFile?.path}');
       } else {
@@ -128,13 +148,22 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
     String url = 'http://10.0.2.2:8081/api/auth/user/files/upload';
 
+    // Xác định loại MIME dựa trên phần mở rộng của tệp
+    String mimeType = _selectedFile!.extension == 'pdf'
+        ? 'application/pdf'
+        : _selectedFile!.extension == 'png'
+        ? 'image/png'
+        : _selectedFile!.extension == 'jpg' || _selectedFile!.extension == 'jpeg'
+        ? 'image/jpeg'
+        : 'application/octet-stream';
+
     var request = http.MultipartRequest('POST', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
       ..files.add(
-        http.MultipartFile.fromBytes(
+        await http.MultipartFile.fromPath(
           'file',
-          File(_selectedFile!.path!).readAsBytesSync(),
-          filename: _selectedFileName,
+          _selectedFile!.path!,
+          contentType: MediaType('application', 'octet-stream'),
         ),
       );
 
@@ -162,6 +191,102 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
+  Future<void> _deleteFile(int fileId) async {
+    String? token = await _getToken();
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
+    String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+
+    try {
+      var response = await http.delete(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('File deleted successfully!')),
+        );
+        _fetchUserFiles();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete file.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during deletion.')),
+      );
+    }
+  }
+
+  Future<void> _editFile(int fileId) async {
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No file selected to upload.')),
+      );
+      return;
+    }
+
+    if (!File(_selectedFile!.path!).existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selected file does not exist.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    String? token = await _getToken();
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
+    String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+
+    var request = http.MultipartRequest('PUT', Uri.parse(url))
+      ..headers['Authorization'] = 'Bearer $token'
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          _selectedFile!.path!,
+        ),
+      );
+
+    try {
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('File updated successfully!')),
+        );
+        _fetchUserFiles();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update file.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during update.')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -177,23 +302,68 @@ class _UploadFilePageState extends State<UploadFilePage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_userFiles.isNotEmpty)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _userFiles.length,
-                  itemBuilder: (context, index) {
-                    var file = _userFiles[index];
-                    return ListTile(
-                      title: Text(file['fileName']),
-                      subtitle: Text("Type: ${file['fileType']} | Size: ${file['fileSize']} bytes"),
-                    );
-                  },
-                ),
+            Expanded(
+              child: _userFiles.isNotEmpty
+                  ? ListView.builder(
+                itemCount: _userFiles.length,
+                itemBuilder: (context, index) {
+                  var file = _userFiles[index];
+                  String documentName = file['document']['documentName'];
+                  String fileType = file['fileType'];
+                  String base64Thumbnail = file['thumbnail'];
+
+                  return ListTile(
+                    leading: fileType == 'PDF'
+                        ? Icon(Icons.picture_as_pdf)
+                        : base64Thumbnail != null
+                        ? Image.memory(
+                      base64Decode(base64Thumbnail),
+                      width: 50,
+                      height: 50,
+                    )
+                        : Icon(Icons.insert_drive_file),
+                    title: Text(documentName),
+                    subtitle: Text("Type: $fileType | Size: ${file['fileSize']} bytes"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () => _editFile(file['fileID']),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _deleteFile(file['fileID']),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               )
-            else
-              const Text('No files found for this user.', style: TextStyle(fontSize: 16)),
+                  : const Center(
+                child: Text(
+                  'No files found for this user.',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (_selectedFile != null)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blue, width: 2),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Column(
+                  children: [
+                    const Text('Selected File:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(_selectedFileName ?? 'No file selected'),
+                  ],
+                ),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _selectFileFromStorage,

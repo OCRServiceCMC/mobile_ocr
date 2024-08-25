@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/layout/custom_app_bar.dart'; // Import CustomAppBar
 import 'package:flutter_application_1/layout/custom_drawer.dart'; // Import CustomDrawer
+import 'package:flutter_application_1/layout/custom_bottom_nav_bar.dart'; // Import CustomBottomNavBar
 import 'package:flutter_application_1/pages/loginregister/login.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 
@@ -14,10 +15,17 @@ class UserHomePage extends StatefulWidget {
 
 class _UserHomePageState extends State<UserHomePage> {
   bool _isLoggedIn = false;
+  int _selectedIndex = 0;
 
   void _toggleLoginState() {
     setState(() {
       _isLoggedIn = !_isLoggedIn;
+    });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
     });
   }
 
@@ -64,17 +72,9 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped, // Điều chỉnh trạng thái khi chọn tab
       ),
     );
   }

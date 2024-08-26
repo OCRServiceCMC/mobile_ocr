@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
-import 'dart:convert'; 
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_application_1/util/constants.dart'; // Import the constants file
 
-class UserAccountPage extends StatelessWidget {
+class UserAccountPage extends StatefulWidget {
   const UserAccountPage({super.key});
 
-  Future<Map<String, dynamic>> fetchUserProfile() async {
+  @override
+  _UserAccountPageState createState() => _UserAccountPageState();
+}
+
+class _UserAccountPageState extends State<UserAccountPage> {
+  late TextEditingController emailController;
+  late TextEditingController firstNameController;
+  late TextEditingController lastNameController;
+  late TextEditingController addressController;
+  late TextEditingController phoneNumberController;
+  late TextEditingController currentGPController;
+  late TextEditingController maxStorageController;
+  late TextEditingController registrationDateController;
+  late TextEditingController roleController;
+
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController();
+    firstNameController = TextEditingController();
+    lastNameController = TextEditingController();
+    addressController = TextEditingController();
+    phoneNumberController = TextEditingController();
+    currentGPController = TextEditingController();
+    maxStorageController = TextEditingController();
+    registrationDateController = TextEditingController();
+    roleController = TextEditingController();
+
+    fetchUserProfile();
+  }
+
+  Future<void> fetchUserProfile() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('authToken');
@@ -16,8 +48,7 @@ class UserAccountPage extends StatelessWidget {
         throw Exception('No token found');
       }
 
-      final url =
-          Uri.parse('$baseUrl/auth/user-details'); // Use the baseUrl constant
+      final url = Uri.parse('http://10.0.2.2:8081/api/auth/user-details');
       final response = await http.get(
         url,
         headers: {
@@ -27,17 +58,70 @@ class UserAccountPage extends StatelessWidget {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        setState(() {
+          emailController.text = data['email'];
+          firstNameController.text = data['userProfile']['firstName'];
+          lastNameController.text = data['userProfile']['lastName'];
+          addressController.text = data['userProfile']['address'];
+          phoneNumberController.text = data['userProfile']['phoneNumber'];
+          currentGPController.text = data['currentGP'].toString();
+          maxStorageController.text = data['maxStorage'].toString();
+          registrationDateController.text = data['registrationDate'];
+          roleController.text = data['role'];
+        });
       } else {
-        // Log the exact response for debugging
-        print(
-            'Failed to load profile: ${response.statusCode} ${response.body}');
         throw Exception('Failed to load profile');
       }
     } catch (e) {
-      // Handle the exception
       print('Error: $e');
-      throw Exception('Failed to fetch user profile');
+    }
+  }
+
+  Future<void> updateUserProfile() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('authToken');
+
+      if (token == null) {
+        throw Exception('No token found');
+      }
+
+      final url = Uri.parse('http://10.0.2.2:8081/api/user/profile');
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'address': addressController.text,
+          'phoneNumber': phoneNumberController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+      } else {
+        throw Exception('Failed to update profile');
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -46,10 +130,84 @@ class UserAccountPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Account'),
+        backgroundColor: Colors.teal,
       ),
-      body: const Center(
-        child: Text('User Account Page'),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTextField('Email', emailController, enabled: false),
+                        _buildTextField('Current GP', currentGPController, enabled: false),
+                        _buildTextField('Max Storage', maxStorageController, enabled: false),
+                        _buildTextField('Registration Date', registrationDateController, enabled: false),
+                        _buildTextField('Role', roleController, enabled: false),
+                        const SizedBox(height: 16),
+                        _buildTextField('First Name', firstNameController),
+                        _buildTextField('Last Name', lastNameController),
+                        _buildTextField('Address', addressController),
+                        _buildTextField('Phone Number', phoneNumberController),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: updateUserProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal, // Button background color
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                            ),
+                            child: const Text(
+                              'Save Changes',
+                              style: TextStyle(color: Colors.white), // Set text color here
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool enabled = true}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        enabled: enabled,
+        style: const TextStyle(color: Color.fromARGB(221, 26, 22, 22)),  // Adjust color as needed
+
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    addressController.dispose();
+    phoneNumberController.dispose();
+    currentGPController.dispose();
+    maxStorageController.dispose();
+    registrationDateController.dispose();
+    roleController.dispose();
+    super.dispose();
   }
 }

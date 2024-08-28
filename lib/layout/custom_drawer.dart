@@ -57,6 +57,13 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.picture_as_pdf),
+            title: const Text('PDF Operations'),
+            onTap: () {
+              Navigator.pushNamed(context, '/pdf-operations');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.question_answer),
             title: const Text('FAQ'),
             onTap: () {

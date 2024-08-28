@@ -11,7 +11,6 @@ class FolderManagementPage extends StatefulWidget {
   const FolderManagementPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _FolderManagementPageState createState() => _FolderManagementPageState();
 }
 
@@ -23,6 +22,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
   List<Map<String, dynamic>> _userFolders = [];
   List<Map<String, dynamic>> _folderFiles = []; // Danh sách tệp của thư mục hiện tại
   int? _currentFolderId; // ID của thư mục hiện tại
+  String? _newFolderName; // Biến lưu tên mới của thư mục
 
   Future<String?> _getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -128,30 +128,22 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
-  Future<void> _selectFolderFromStorage() async {
+  Future<void> _selectFileFromStorage() async {
     PermissionStatus status = await Permission.storage.request();
 
     if (status.isGranted) {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.any,
-        allowMultiple: true, // Cho phép chọn nhiều files
       );
 
       if (result != null && result.files.isNotEmpty) {
         setState(() {
           _selectedFiles = result.files;
-          _selectedFolderName = 'Folder1'; // Example, cần thay thế bằng logic phù hợp
         });
 
-        print('Selected folder: $_selectedFolderName');
-        for (var file in _selectedFiles!) {
-          print('Selected file: ${file.name}');
-        }
+        print('Selected file: ${_selectedFiles!.first.name}');
       } else {
-        setState(() {
-          _selectedFolderName = 'No folder selected';
-        });
-        print('No folder selected');
+        print('No file selected');
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,6 +178,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     var request = http.MultipartRequest('POST', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
       ..fields['folderName'] = _selectedFolderName ?? 'New Folder';
+
 
     for (var file in _selectedFiles!) {
       request.files.add(
@@ -289,7 +282,14 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
-  Future<void> _updateFile(int folderId, int fileId, String filePath) async {
+  Future<void> _updateFile(int folderId, int fileId) async {
+    if (_selectedFiles == null || _selectedFiles!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No file selected for update.')),
+      );
+      return;
+    }
+
     String? token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -305,7 +305,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       ..files.add(
         await http.MultipartFile.fromPath(
           'file',
-          filePath,
+          _selectedFiles!.first.path!,
           contentType: MediaType.parse('application/octet-stream'),
         ),
       );
@@ -317,21 +317,23 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File updated successfully!')),
         );
-        _fetchFolderFiles(folderId); // Refresh folder files after update
+        _fetchFolderFiles(folderId); // Làm mới danh sách tệp sau khi cập nhật
       } else {
+        String responseBody = await response.stream.bytesToString();
+        print("Update failed: $responseBody");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update file.')),
         );
       }
     } catch (e) {
+      print("Error during update: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('An error occurred during file update.')),
       );
     }
   }
 
-
-  Future<void> _updateFolder(int folderId, String newFolderName) async {
+  Future<void> _updateFolder(int folderId) async {
     String? token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -340,11 +342,18 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
+    if (_newFolderName == null || _newFolderName!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('New folder name cannot be empty.')),
+      );
+      return;
+    }
+
     String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
 
     var request = http.MultipartRequest('PUT', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
-      ..fields['folderName'] = newFolderName;
+      ..fields['folderName'] = _newFolderName!;
 
     try {
       var response = await request.send();
@@ -366,6 +375,40 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
+  Future<void> _showUpdateFolderDialog(int folderId) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Update Folder Name"),
+          content: TextField(
+            onChanged: (value) {
+              _newFolderName = value;
+            },
+            decoration: const InputDecoration(
+              hintText: "Enter new folder name",
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Update"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _updateFolder(folderId);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -379,7 +422,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         title: const Text('Folder Management'),
         leading: _currentFolderId != null
             ? IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             setState(() {
               _currentFolderId = null;
@@ -392,7 +435,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : _currentFolderId == null
             ? ListView.builder(
           itemCount: _userFolders.length,
@@ -402,7 +445,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
             int? folderId = folder['folderID'];
 
             if (folderId == null) {
-              return ListTile(
+              return const ListTile(
                 title: Text('Invalid Folder'),
                 subtitle: Text('Folder ID is null'),
               );
@@ -411,25 +454,25 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
-                leading: Icon(Icons.folder, size: 40),
+                leading: const Icon(Icons.folder, size: 40),
                 title: Text(
                   folderName,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.visibility, color: Colors.green),
+                      icon: const Icon(Icons.visibility, color: Colors.green),
                       onPressed: () => _fetchFolderFiles(folderId),
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteFolder(folderId),
                     ),
                     IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _updateFolder(folderId, "UpdatedFolderName"),
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () => _showUpdateFolderDialog(folderId),
                     ),
                   ],
                 ),
@@ -437,44 +480,57 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
             );
           },
         )
-            : ListView.builder(
-          itemCount: _folderFiles.length,
-          itemBuilder: (context, index) {
-            var file = _folderFiles[index];
-            String fileName = file['fileName'] ?? 'Unknown File';
-            int? fileId = file['fileID'];
+            : Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _folderFiles.length,
+                itemBuilder: (context, index) {
+                  var file = _folderFiles[index];
+                  String fileName = file['fileName'] ?? 'Unknown File';
+                  int? fileId = file['fileID'];
 
-            if (fileId == null) {
-              return ListTile(
-                title: Text('Invalid File'),
-                subtitle: Text('File ID is null'),
-              );
-            }
+                  if (fileId == null) {
+                    return const ListTile(
+                      title: Text('Invalid File'),
+                      subtitle: Text('File ID is null'),
+                    );
+                  }
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: Icon(Icons.insert_drive_file, size: 40),
-                title: Text(
-                  fileName,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _updateFile(_currentFolderId!, fileId, 'path/to/updated/file'),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      leading: const Icon(Icons.insert_drive_file, size: 40),
+                      title: Text(
+                        fileName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _updateFile(_currentFolderId!, fileId),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteFile(_currentFolderId!, fileId),
+                          ),
+                        ],
+                      ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteFile(_currentFolderId!, fileId),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _selectFileFromStorage,
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Select File from Storage'),
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );

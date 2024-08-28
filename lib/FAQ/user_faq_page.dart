@@ -160,7 +160,7 @@ class _FAQPageState extends State<FAQPage> {
           question.message = editController.text;
         });
       }
-    } catch (e) {
+    } catch(e) {
       _logger.severe('Error editing question: $e');
       throw Exception('Failed to edit question');
     }

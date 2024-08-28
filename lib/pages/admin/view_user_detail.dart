@@ -22,6 +22,7 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
   late TextEditingController _emailController;
   late TextEditingController _currentGPController;
   late TextEditingController _roleController;
+  late TextEditingController _maxStorageController;
 
   Future<String?> _getAuthToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -63,6 +64,9 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
     _emailController = TextEditingController(text: user['email']);
     _currentGPController = TextEditingController(text: user['currentGP']?.toString() ?? '0');
     _roleController = TextEditingController(text: user['role']);
+    _maxStorageController = TextEditingController(
+      text: (user['maxStorage'] / (1024 * 1024)).toStringAsFixed(2),
+    );
   }
 
   Future<void> _updateUser() async {
@@ -141,29 +145,70 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildDetailCard('Profile ID', user['userProfile']['profileID'].toString()),
-            _buildEditableField('Username', _usernameController),
-            _buildEditableField('Email', _emailController),
-            _buildEditableField('Current GP', _currentGPController, isNumeric: true),
-            _buildDetailCard('Role', user['role']),
-            _buildDetailCard('Max Storage', '${user['maxStorage']} bytes'),
-            _buildDetailCard('Registration Date', user['registrationDate'] ?? 'N/A'),
-            _buildDetailCard('Phone Number', user['userProfile']['phoneNumber'] ?? 'N/A'),
-            _buildDetailCard('Address', user['userProfile']['address'] ?? 'N/A'),
-            _buildDetailCard('Last Login Date', user['lastLoginDate'] ?? 'N/A'),
-            _buildDetailCard('Status', user['status'] ?? 'N/A'),
+            const SizedBox(height: 16),
+            _buildEditableSection(),
+            const SizedBox(height: 20),
+            _buildNonEditableSection(user),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEditableField(String label, TextEditingController controller, {bool isNumeric = false}) {
+  Widget _buildEditableSection() {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Text(
+              'Editable Information',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.teal),
+            ),
+            const SizedBox(height: 16),
+            _buildEditableField('Email', _emailController),
+            _buildEditableField('Current GP', _currentGPController, isNumeric: true),
+            _buildEditableField('Max Storage (MB)', _maxStorageController, enabled: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNonEditableSection(Map<String, dynamic> user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Text(
+          'User Information',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.teal),
+        ),
+        const SizedBox(height: 16),
+        _buildDetailCard('Username', user['username']),
+        _buildDetailCard('Profile ID', user['userProfile']['profileID'].toString()),
+        _buildDetailCard('Role', user['role']),
+        _buildDetailCard('Registration Date', user['registrationDate'] ?? 'N/A'),
+        _buildDetailCard('Phone Number', user['userProfile']['phoneNumber'] ?? 'N/A'),
+        _buildDetailCard('Address', user['userProfile']['address'] ?? 'N/A'),
+        _buildDetailCard('Last Login Date', user['lastLoginDate'] ?? 'N/A'),
+        _buildDetailCard('Status', user['status'] ?? 'N/A'),
+      ],
+    );
+  }
+
+  Widget _buildEditableField(String label, TextEditingController controller, {bool isNumeric = false, bool enabled = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
         keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+        enabled: enabled,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
@@ -183,7 +228,11 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
 
   Widget _buildDetailCard(String title, String content) {
     return Card(
+      elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: ListTile(
         title: Text(
           title,

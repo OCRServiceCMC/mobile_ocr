@@ -12,6 +12,7 @@ class UserAccountPage extends StatefulWidget {
 
 class _UserAccountPageState extends State<UserAccountPage> {
   late TextEditingController emailController;
+  late TextEditingController usernameController; // New controller for username
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   late TextEditingController addressController;
@@ -27,6 +28,8 @@ class _UserAccountPageState extends State<UserAccountPage> {
   void initState() {
     super.initState();
     emailController = TextEditingController();
+    usernameController =
+        TextEditingController(); // Initialize the new controller
     firstNameController = TextEditingController();
     lastNameController = TextEditingController();
     addressController = TextEditingController();
@@ -65,12 +68,15 @@ class _UserAccountPageState extends State<UserAccountPage> {
         final data = jsonDecode(response.body);
         setState(() {
           emailController.text = data['email'] ?? '';
+          usernameController.text = data['username'] ?? ''; // Set the username
           firstNameController.text = data['userProfile']['firstName'] ?? '';
           lastNameController.text = data['userProfile']['lastName'] ?? '';
           addressController.text = data['userProfile']['address'] ?? '';
           phoneNumberController.text = data['userProfile']['phoneNumber'] ?? '';
           currentGPController.text = data['currentGP']?.toString() ?? '0';
-          maxStorageController.text = data['maxStorage']?.toString() ?? '0';
+          maxStorageController.text = (data['maxStorage'] != null
+              ? (data['maxStorage'] / (1024 * 1024)).toStringAsFixed(2)
+              : '0');
           registrationDateController.text = data['registrationDate'] ?? '';
           roleController.text = data['role'] ?? '';
         });
@@ -163,11 +169,16 @@ class _UserAccountPageState extends State<UserAccountPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTextField('Email', emailController, enabled: false),
+                        _buildTextField('Login Name', usernameController,
+                            enabled: false), // Add username field
                         _buildTextField('Current GP', currentGPController, enabled: false),
-                        _buildTextField('Max Storage', maxStorageController, enabled: false),
+                        _buildTextField(
+                            'Max Storage (MB)', maxStorageController,
+                            enabled: false),
                         _buildTextField('Registration Date', registrationDateController, enabled: false),
                         _buildTextField('Role', roleController, enabled: false),
                         const SizedBox(height: 16),
+                        
                         _buildTextField('First Name', firstNameController),
                         _buildTextField('Last Name', lastNameController),
                         _buildTextField('Address', addressController),
@@ -202,8 +213,8 @@ class _UserAccountPageState extends State<UserAccountPage> {
       child: TextField(
         controller: controller,
         enabled: enabled,
-        style: const TextStyle(color: Color.fromARGB(221, 26, 22, 22)),  // Adjust color as needed
-
+        style: const TextStyle(
+            color: Color.fromARGB(221, 26, 22, 22)), // Adjust color as needed
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
@@ -215,6 +226,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
   @override
   void dispose() {
     emailController.dispose();
+    usernameController.dispose(); // Dispose the username controller
     firstNameController.dispose();
     lastNameController.dispose();
     addressController.dispose();

@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp( 
+      debugShowCheckedModeBanner: false,  // Turn off the debug banner
       title: 'OCR Service App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -53,6 +54,4 @@ class MyApp extends StatelessWidget {
 //? Page Upload File
 //? Page Edit File  (nếu có)
 
-//! Fix bug, duplicated name when user change name in profile page. Because user loggin by user name
-//! bug: account with no money don't have their info (account.dart) appear in the profile page
-//? Change MaxStorage from display byte to MB
+//! Fix bug, duplicated name when user change name in profile page. Because user loggin by user names

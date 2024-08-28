@@ -153,6 +153,21 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
+  // Hàm để xác định loại MIME từ phần mở rộng của tệp
+  String _getMimeType(String? extension) {
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'png':
+        return 'image/png';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   Future<void> _uploadFolder() async {
     if (_selectedFiles == null || _selectedFiles!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,13 +194,15 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       ..headers['Authorization'] = 'Bearer $token'
       ..fields['folderName'] = _selectedFolderName ?? 'New Folder';
 
-
     for (var file in _selectedFiles!) {
+      // Xác định loại MIME dựa trên phần mở rộng của tệp
+      String mimeType = _getMimeType(file.extension);
+
       request.files.add(
         await http.MultipartFile.fromPath(
           'files',
           file.path!,
-          contentType: MediaType.parse('application/octet-stream'),
+          contentType: MediaType.parse(mimeType),
         ),
       );
     }
@@ -300,13 +317,16 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
 
     String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
 
+    // Xác định loại MIME dựa trên phần mở rộng của tệp
+    String mimeType = _getMimeType(_selectedFiles!.first.extension);
+
     var request = http.MultipartRequest('PUT', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
       ..files.add(
         await http.MultipartFile.fromPath(
           'file',
           _selectedFiles!.first.path!,
-          contentType: MediaType.parse('application/octet-stream'),
+          contentType: MediaType.parse(mimeType),
         ),
       );
 
@@ -322,7 +342,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         String responseBody = await response.stream.bytesToString();
         print("Update failed: $responseBody");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update file.')),
+          SnackBar(content: Text('Failed to update file: $responseBody')),
         );
       }
     } catch (e) {

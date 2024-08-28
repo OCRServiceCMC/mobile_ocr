@@ -21,7 +21,7 @@ class CustomDrawer extends StatelessWidget {
               color: Colors.blue,
             ),
             child: Text(
-              'Drawer Header',
+              'Dashboard',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,

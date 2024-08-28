@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp( 
-      title: 'Flutter Demo',
+      title: 'OCR Service App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -23,8 +23,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/upload': (context) => const UploadFilePage(),
         '/upload-folder': (context) => const FolderManagementPage(),
-
         '/image-toBase64': (context) => const ImageToBase64Page(),
+
+        
       },
     );
   }

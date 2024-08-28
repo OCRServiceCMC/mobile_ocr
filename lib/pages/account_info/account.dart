@@ -41,6 +41,10 @@ class _UserAccountPageState extends State<UserAccountPage> {
 
   Future<void> fetchUserProfile() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('authToken');
 
@@ -60,21 +64,29 @@ class _UserAccountPageState extends State<UserAccountPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          emailController.text = data['email'];
-          firstNameController.text = data['userProfile']['firstName'];
-          lastNameController.text = data['userProfile']['lastName'];
-          addressController.text = data['userProfile']['address'];
-          phoneNumberController.text = data['userProfile']['phoneNumber'];
-          currentGPController.text = data['currentGP'].toString();
-          maxStorageController.text = data['maxStorage'].toString();
-          registrationDateController.text = data['registrationDate'];
-          roleController.text = data['role'];
+          emailController.text = data['email'] ?? '';
+          firstNameController.text = data['userProfile']['firstName'] ?? '';
+          lastNameController.text = data['userProfile']['lastName'] ?? '';
+          addressController.text = data['userProfile']['address'] ?? '';
+          phoneNumberController.text = data['userProfile']['phoneNumber'] ?? '';
+          currentGPController.text = data['currentGP']?.toString() ?? '0';
+          maxStorageController.text = data['maxStorage']?.toString() ?? '0';
+          registrationDateController.text = data['registrationDate'] ?? '';
+          roleController.text = data['role'] ?? '';
         });
       } else {
+        print('Failed to load profile: ${response.statusCode} ${response.body}');
         throw Exception('Failed to load profile');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error fetching profile: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching profile: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -110,13 +122,16 @@ class _UserAccountPageState extends State<UserAccountPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
+        // Fetch the updated profile
+        fetchUserProfile();
       } else {
+        print('Failed to update profile: ${response.statusCode} ${response.body}');
         throw Exception('Failed to update profile');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error updating profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error updating profile: $e')),
       );
     } finally {
       setState(() {

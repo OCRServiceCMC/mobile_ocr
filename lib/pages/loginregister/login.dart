@@ -38,16 +38,37 @@ class LoginPage extends StatelessWidget {
 
         print('Received token: $token');
 
-        // Điều hướng dựa vào username
-        if (username == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminHomePage()),
-          );
+        // Gọi API user-details để lấy thông tin người dùng
+        final userDetailsResponse = await http.get(
+          Uri.parse('http://10.0.2.2:8081/api/auth/user-details'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+
+        if (userDetailsResponse.statusCode == 200) {
+          final userDetails = jsonDecode(userDetailsResponse.body);
+          String role = userDetails['role'];
+
+          // Điều hướng dựa vào role
+          if (role == 'ADMIN') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminHomePage()),
+            );
+          } else if (role == 'User') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const UserHomePage()),
+            );
+          } else {
+            // Xử lý các role khác nếu có
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Unauthorized role!')),
+            );
+          }
         } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const UserHomePage()),
+          // Xử lý lỗi khi không lấy được thông tin người dùng
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to fetch user details!')),
           );
         }
       } else {

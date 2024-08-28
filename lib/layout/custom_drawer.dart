@@ -4,6 +4,7 @@ import 'package:flutter_application_1/FAQ/user_faq_page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/folder_management_page.dart';
+import 'package:flutter_application_1/pages/payment/qrpaymentpage.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -61,6 +62,16 @@ class CustomDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FAQPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.qr_code),
+            title: const Text('QR Payment'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QRPaymentPage()),
               );
             },
           ),

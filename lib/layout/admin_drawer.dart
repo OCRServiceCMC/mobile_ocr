@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/admin/admin_view_user.dart';
 import 'package:flutter_application_1/FAQ/admin_faq_page.dart';
 import 'package:flutter_application_1/pages/home/admin_home.dart';
+import 'package:flutter_application_1/pages/payment/qrpaymentpage.dart';
 
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({super.key});
@@ -52,6 +53,16 @@ class AdminDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AdminFAQPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.qr_code),
+            title: const Text('QR Payment'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QRPaymentPage()),
               );
             },
           ),

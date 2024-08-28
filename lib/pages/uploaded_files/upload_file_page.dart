@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
-import 'dart:convert';  // Import cho base64Decode
+import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';  // Import cho Uint8List
+import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:typed_data';  // Import này cần thiết cho Uint8List
 
 class UploadFilePage extends StatefulWidget {
   const UploadFilePage({super.key});
@@ -20,22 +19,20 @@ class _UploadFilePageState extends State<UploadFilePage> {
   String? _selectedFileName;
   PlatformFile? _selectedFile;
   bool _isUploading = false;
-  bool _isLoading = true; // Thêm biến để kiểm tra trạng thái tải
+  bool _isLoading = true;
   List<Map<String, dynamic>> _userFiles = [];
 
-  // Hàm lấy token từ SharedPreferences
   Future<String?> _getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  // Hàm lấy danh sách file từ API
   Future<void> _fetchUserFiles() async {
     setState(() {
       _isLoading = true;
     });
 
-    String? token = await _getToken(); // Lấy token từ session
+    String? token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token found.')),
@@ -82,13 +79,11 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
-  // Hàm kiểm tra loại file hợp lệ
   bool _isValidFileType(String fileName) {
     String ext = fileName.split('.').last.toLowerCase();
     return ext == 'jpg' || ext == 'jpeg' || ext == 'png' || ext == 'pdf';
   }
 
-  // Hàm chọn file từ storage của thiết bị
   Future<void> _selectFileFromStorage() async {
     PermissionStatus status = await Permission.storage.request();
 
@@ -103,7 +98,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
           _selectedFileName = _selectedFile?.name;
         });
 
-        // Kiểm tra loại file
         if (!_isValidFileType(_selectedFileName!)) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Only JPG, PNG, and PDF files are allowed.')),
@@ -131,17 +125,16 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
-  // Hàm để chuyển đổi base64 thành Uint8List
   Uint8List _base64ToImage(String base64String) {
     try {
       return base64Decode(base64String);
     } catch (e) {
       print("Error decoding base64: $e");
-      return Uint8List(0); // Trả về một mảng trống để tránh crash ứng dụng
+      return Uint8List(0);
     }
   }
 
-  // Hàm view file theo ID
+// Hàm view file theo ID
   Future<void> _viewFile(int fileId) async {
     String? token = await _getToken();
     if (token == null) {
@@ -163,24 +156,46 @@ class _UploadFilePageState extends State<UploadFilePage> {
         var fileData = jsonDecode(response.body);
         print('File data: $fileData');
 
-        // Giả sử dữ liệu nhận về là base64
-        if (fileData['base64'] != null) {
-          Uint8List imageData = _base64ToImage(fileData['base64']);
-          // Mở một trang mới để hiển thị ảnh hoặc PDF
+        String fileType = fileData['fileType'];
+
+        if (fileType == 'PDF') {
+          // Xử lý nếu file là PDF
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => Scaffold(
                 appBar: AppBar(title: Text(fileData['fileName'])),
                 body: Center(
-                  child: Image.memory(imageData),
+                  child: Text('PDF Viewer here'), // Thay bằng widget hiển thị PDF
                 ),
               ),
             ),
           );
+        } else if (fileType == 'JPG' || fileType == 'PNG') {
+          // Kiểm tra và sử dụng base64 từ fileData hoặc từ document
+          String? base64String = fileData['base64'] ?? fileData['document']['base64'];
+
+          if (base64String != null && base64String.isNotEmpty) {
+            Uint8List imageData = _base64ToImage(base64String);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Scaffold(
+                  appBar: AppBar(title: Text(fileData['fileName'])),
+                  body: Center(
+                    child: Image.memory(imageData),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to fetch file details.')),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to fetch file details.')),
+            const SnackBar(content: Text('Unsupported file type.')),
           );
         }
       } else {
@@ -195,7 +210,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
-  // Hàm upload file lên API
+
   Future<void> _uploadFile() async {
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -215,7 +230,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
       _isUploading = true;
     });
 
-    String? token = await _getToken(); // Lấy token từ session
+    String? token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token found.')),
@@ -225,7 +240,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
     String url = 'http://10.0.2.2:8081/api/auth/user/files/upload';
 
-    // Xác định loại MIME dựa trên phần mở rộng của tệp
     String mimeType = _selectedFile!.extension == 'pdf'
         ? 'application/pdf'
         : _selectedFile!.extension == 'png'
@@ -240,7 +254,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         await http.MultipartFile.fromPath(
           'file',
           _selectedFile!.path!,
-          contentType: MediaType.parse(mimeType), // Sử dụng MIME type chính xác
+          contentType: MediaType.parse(mimeType),
         ),
       );
 
@@ -251,7 +265,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File uploaded successfully!')),
         );
-        _fetchUserFiles(); // Refresh file list after upload
+        _fetchUserFiles();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to upload file.')),
@@ -289,7 +303,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File deleted successfully!')),
         );
-        _fetchUserFiles(); // Cập nhật danh sách file sau khi xóa
+        _fetchUserFiles();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to delete file.')),
@@ -302,7 +316,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
     }
   }
 
-  // Hàm chỉnh sửa file
   Future<void> _editFile(int fileId) async {
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -335,7 +348,6 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
     String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
 
-    // Xác định loại MIME dựa trên phần mở rộng của tệp
     String mimeType = _selectedFile!.extension == 'pdf'
         ? 'application/pdf'
         : _selectedFile!.extension == 'png'
@@ -350,7 +362,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         await http.MultipartFile.fromPath(
           'file',
           _selectedFile!.path!,
-          contentType: MediaType.parse(mimeType), // Sử dụng MIME type chính xác
+          contentType: MediaType.parse(mimeType),
         ),
       );
 
@@ -361,7 +373,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File updated successfully!')),
         );
-        _fetchUserFiles(); // Cập nhật danh sách file sau khi chỉnh sửa
+        _fetchUserFiles();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update file.')),
@@ -381,7 +393,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
   @override
   void initState() {
     super.initState();
-    _fetchUserFiles(); // Fetch files when the page loads
+    _fetchUserFiles();
   }
 
   @override
@@ -396,7 +408,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
           children: [
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator()) // Thêm loading indicator
+                  ? const Center(child: CircularProgressIndicator())
                   : _userFiles.isNotEmpty
                   ? ListView.builder(
                 itemCount: _userFiles.length,
@@ -413,7 +425,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
                           ? const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
                           : base64Thumbnail != null && base64Thumbnail.isNotEmpty
                           ? Image.memory(
-                        _base64ToImage(base64Thumbnail), // Đảm bảo sử dụng hàm base64Decode chính xác
+                        _base64ToImage(base64Thumbnail),
                         width: 50,
                         height: 50,
                       )
@@ -424,8 +436,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.visibility, color: Colors.green), // Thêm icon View
-                            onPressed: () => _viewFile(file['fileID']), // Gọi hàm _viewFile với fileID
+                            icon: const Icon(Icons.visibility, color: Colors.green),
+                            onPressed: () => _viewFile(file['fileID']),
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),

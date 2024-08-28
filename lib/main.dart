@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'pages/loginregister/login.dart';
 import 'pages/uploaded_files/upload_file_page.dart';
 import 'pages/uploaded_files/folder_management_page.dart';
-import 'layout/custom_drawer.dart';
 import 'pages/ocr_page/imagetobase64page.dart';
 
 void main() {

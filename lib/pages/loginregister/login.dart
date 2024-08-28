@@ -5,6 +5,7 @@ import 'package:flutter_application_1/pages/loginregister/register.dart';
 import 'package:flutter_application_1/pages/home/user_home.dart';
 import 'package:flutter_application_1/pages/home/admin_home.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import thư viện
+import 'package:flutter_application_1/pages/loginregister/forgotpassword.dart'; // Import trang ForgotPasswordPage
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -58,9 +59,6 @@ class LoginPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -98,6 +96,17 @@ class LoginPage extends StatelessWidget {
                   child: const Text('Register'),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            // Nút điều hướng đến trang Forgot Password
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                );
+              },
+              child: const Text('Forgot Password?'),
             ),
           ],
         ),

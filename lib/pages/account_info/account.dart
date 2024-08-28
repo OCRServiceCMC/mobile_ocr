@@ -12,7 +12,7 @@ class UserAccountPage extends StatefulWidget {
 
 class _UserAccountPageState extends State<UserAccountPage> {
   late TextEditingController emailController;
-  late TextEditingController usernameController; // New controller for username
+  late TextEditingController usernameController;
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   late TextEditingController addressController;
@@ -28,8 +28,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
   void initState() {
     super.initState();
     emailController = TextEditingController();
-    usernameController =
-        TextEditingController(); // Initialize the new controller
+    usernameController = TextEditingController();
     firstNameController = TextEditingController();
     lastNameController = TextEditingController();
     addressController = TextEditingController();
@@ -68,7 +67,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
         final data = jsonDecode(response.body);
         setState(() {
           emailController.text = data['email'] ?? '';
-          usernameController.text = data['username'] ?? ''; // Set the username
+          usernameController.text = data['username'] ?? '';
           firstNameController.text = data['userProfile']['firstName'] ?? '';
           lastNameController.text = data['userProfile']['lastName'] ?? '';
           addressController.text = data['userProfile']['address'] ?? '';
@@ -81,11 +80,9 @@ class _UserAccountPageState extends State<UserAccountPage> {
           roleController.text = data['role'] ?? '';
         });
       } else {
-        print('Failed to load profile: ${response.statusCode} ${response.body}');
         throw Exception('Failed to load profile');
       }
     } catch (e) {
-      print('Error fetching profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching profile: $e')),
       );
@@ -128,14 +125,11 @@ class _UserAccountPageState extends State<UserAccountPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
-        // Fetch the updated profile
         fetchUserProfile();
       } else {
-        print('Failed to update profile: ${response.statusCode} ${response.body}');
         throw Exception('Failed to update profile');
       }
     } catch (e) {
-      print('Error updating profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating profile: $e')),
       );
@@ -168,32 +162,36 @@ class _UserAccountPageState extends State<UserAccountPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildSectionHeader('Account Information'),
                         _buildTextField('Email', emailController, enabled: false),
-                        _buildTextField('Login Name', usernameController,
-                            enabled: false), // Add username field
-                        _buildTextField('Current GP', currentGPController, enabled: false),
-                        _buildTextField(
-                            'Max Storage (MB)', maxStorageController,
-                            enabled: false),
-                        _buildTextField('Registration Date', registrationDateController, enabled: false),
+                        _buildTextField('Login Name', usernameController, enabled: false),
                         _buildTextField('Role', roleController, enabled: false),
+                        _buildTextField('Registration Date', registrationDateController, enabled: false),
                         const SizedBox(height: 16),
-                        
+                        _buildSectionHeader('Usage Information'),
+                        _buildTextField('Current GP', currentGPController, enabled: false),
+                        _buildTextField('Max Storage (MB)', maxStorageController, enabled: false),
+                        const SizedBox(height: 16),
+                        _buildSectionHeader('Personal Information'),
                         _buildTextField('First Name', firstNameController),
                         _buildTextField('Last Name', lastNameController),
                         _buildTextField('Address', addressController),
                         _buildTextField('Phone Number', phoneNumberController),
                         const SizedBox(height: 20),
                         Center(
-                          child: ElevatedButton(
+                          child: ElevatedButton.icon(
                             onPressed: updateUserProfile,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.teal, // Button background color
+                              backgroundColor: Colors.teal,
                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                             ),
-                            child: const Text(
+                            icon: const Icon(Icons.save, color:Colors.white),
+                            label: const Text(
                               'Save Changes',
-                              style: TextStyle(color: Colors.white), // Set text color here
+                              style: TextStyle(color: Colors.white),
                             ),
                           ),
                         )
@@ -213,8 +211,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
       child: TextField(
         controller: controller,
         enabled: enabled,
-        style: const TextStyle(
-            color: Color.fromARGB(221, 26, 22, 22)), // Adjust color as needed
+        style: const TextStyle(color: Color.fromARGB(221, 26, 22, 22)),
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
@@ -223,10 +220,24 @@ class _UserAccountPageState extends State<UserAccountPage> {
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal,
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     emailController.dispose();
-    usernameController.dispose(); // Dispose the username controller
+    usernameController.dispose();
     firstNameController.dispose();
     lastNameController.dispose();
     addressController.dispose();

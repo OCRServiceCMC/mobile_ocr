@@ -6,7 +6,7 @@ import 'pages/ocr_page/imagetobase64page.dart';
 
 import 'pages/pdf_operation/pdf_operation_page.dart'; // Import PDFOperationPage
 // Import other pages
-import 'pages/pdf_operation/split_pdf_page.dart'; // Split PDF by Range page
+// import 'pages/pdf_operation/split_pdf_page.dart'; // Split PDF by Range page
 import 'pages/pdf_operation/delete_pdf_page.dart'; // Delete PDF by Range page
 import 'pages/pdf_operation/extract_pdf_page.dart'; // Extract PDF page
 import 'pages/pdf_operation/merge_pdf_page.dart'; // Merge PDF page
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
         '/image-toBase64': (context) => const ImageToBase64Page(),
 
         '/pdf-operations': (context) => const PDFOperationPage(),
-        '/split-pdf': (context) => const SplitPDFPage(),
+        // '/split-pdf': (context) => const SplitPDFPage(),
         '/delete-pdf': (context) => const DeletePDFPage(),
         '/extract-pdf': (context) => const ExtractPDFPage(),
         '/merge-pdf': (context) => const MergePDFPage(),
@@ -84,4 +84,3 @@ class MyApp extends StatelessWidget {
 //? Page Upload File
 //? Page Edit File  (nếu có)
 
-//! Fix bug, duplicated name when user change name in profile page. Because user loggin by user names

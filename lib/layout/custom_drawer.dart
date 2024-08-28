@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
+import 'package:flutter_application_1/pages/uploaded_files/folder_management_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -19,7 +20,7 @@ class CustomDrawer extends StatelessWidget {
             child: Text(
               'Drawer Header',
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.white,
                 fontSize: 24,
               ),
             ),
@@ -35,20 +36,21 @@ class CustomDrawer extends StatelessWidget {
             leading: const Icon(Icons.upload_file),
             title: const Text('Upload File'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const UploadFilePage()),
-              );
+              Navigator.pushNamed(context, '/upload');
             },
           ),
           ListTile(
+            leading: const Icon(Icons.folder),
+            title: const Text('Manage Folders'),
+            onTap: (){
+              Navigator.pushNamed(context, '/upload-folder');
+            }
+          ),
+          ListTile(
             leading: const Icon(Icons.upload_file),
-            title: const Text('OCR Image'),
+            title: const Text('Image To Base64'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ImageToBase64Page()),
-              );
+              Navigator.pushNamed(context, '/image-toBase64');
             },
           ),
         ],

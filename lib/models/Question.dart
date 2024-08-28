@@ -1,7 +1,7 @@
 class Question {
   final int messageID;
   final int userID;
-  final String message;
+  late final String message;
   final String messageTime;
   final List<Answer> answers;
 

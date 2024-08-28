@@ -239,6 +239,41 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
+  Future<void> _updateFolder(int folderId, String newFolderName) async {
+    String? token = await _getToken();
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
+    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
+
+    var request = http.MultipartRequest('PUT', Uri.parse(url))
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['folderName'] = newFolderName;
+
+    try {
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Folder updated successfully!')),
+        );
+        _fetchUserFolders(); // Cập nhật danh sách folder sau khi update
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update folder.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during update.')),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -263,8 +298,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
                 itemCount: _userFolders.length,
                 itemBuilder: (context, index) {
                   var folder = _userFolders[index];
-                  String folderName = folder['folderName'] ?? 'Unknown Folder'; // Đảm bảo giá trị không phải là null
-                  int? folderId = folder['folderId']; // Có thể null, cần kiểm tra trước khi sử dụng
+                  String folderName = folder['folderName'] ?? 'Unknown Folder';
+                  int? folderId = folder['folderID']; // Sửa lỗi bằng cách dùng đúng key 'folderID'
 
                   // Kiểm tra nếu folderId là null
                   if (folderId == null) {
@@ -292,6 +327,10 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _deleteFolder(folderId),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _updateFolder(folderId, "UpdatedFolderName"),
                           ),
                         ],
                       ),

@@ -201,7 +201,7 @@ class _FAQPageState extends State<FAQPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FAQ Page'),
+        title: const Text('Q&A'),
       ),
       body: Column(
         children: [

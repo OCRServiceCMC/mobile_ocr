@@ -49,7 +49,7 @@ class AdminDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.question_answer),
-            title: const Text('FAQ'),
+            title: const Text('Q&A'),
             onTap: () {
               Navigator.push(
                 context,

@@ -127,7 +127,7 @@ class _AdminFAQPageState extends State<AdminFAQPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin FAQ Page'),
+        title: const Text('Admin Q&A'),
       ),
       body: ListView.builder(
         itemCount: questions.length,

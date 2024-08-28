@@ -1,6 +1,7 @@
 // lib/layout/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/FAQ/user_faq_page.dart';
+import 'package:flutter_application_1/pages/home/user_home.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/folder_management_page.dart';
@@ -32,7 +33,10 @@ class CustomDrawer extends StatelessWidget {
             leading: const Icon(Icons.home),
             title: const Text('Home'),
             onTap: () {
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UserHomePage()),
+              );
             },
           ),
           ListTile(

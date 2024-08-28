@@ -396,7 +396,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
           children: [
             Expanded(
               child: _isLoading
-                  ? Center(child: CircularProgressIndicator()) // Thêm loading indicator
+                  ? const Center(child: CircularProgressIndicator()) // Thêm loading indicator
                   : _userFiles.isNotEmpty
                   ? ListView.builder(
                 itemCount: _userFiles.length,
@@ -410,29 +410,29 @@ class _UploadFilePageState extends State<UploadFilePage> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       leading: fileType == 'PDF'
-                          ? Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
+                          ? const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
                           : base64Thumbnail != null && base64Thumbnail.isNotEmpty
                           ? Image.memory(
                         _base64ToImage(base64Thumbnail), // Đảm bảo sử dụng hàm base64Decode chính xác
                         width: 50,
                         height: 50,
                       )
-                          : Icon(Icons.insert_drive_file, size: 40),
-                      title: Text(documentName, style: TextStyle(fontWeight: FontWeight.bold)),
+                          : const Icon(Icons.insert_drive_file, size: 40),
+                      title: Text(documentName, style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text("Type: $fileType | Size: ${file['fileSize']} bytes"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.visibility, color: Colors.green), // Thêm icon View
+                            icon: const Icon(Icons.visibility, color: Colors.green), // Thêm icon View
                             onPressed: () => _viewFile(file['fileID']), // Gọi hàm _viewFile với fileID
                           ),
                           IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Colors.blue),
                             onPressed: () => _editFile(file['fileID']),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _deleteFile(file['fileID']),
                           ),
                         ],

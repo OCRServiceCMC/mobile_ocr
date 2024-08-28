@@ -149,7 +149,7 @@ class AdminQuestionTile extends StatelessWidget {
   final Function(Question, TextEditingController) onAddAnswer;
   final Function(Question) onDelete;
 
-  AdminQuestionTile({
+  const AdminQuestionTile({
     super.key,
     required this.question,
     required this.onAddAnswer,

@@ -53,3 +53,5 @@ class MyApp extends StatelessWidget {
 //? Page Edit File  (nếu có)
 
 //! Fix bug, duplicated name when user change name in profile page. Because user loggin by user name
+//! bug: account with no money don't have their info (account.dart) appear in the profile page
+//? Change MaxStorage from display byte to MB

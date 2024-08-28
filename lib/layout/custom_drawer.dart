@@ -5,6 +5,7 @@ import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart
 import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/folder_management_page.dart';
 import 'package:flutter_application_1/pages/payment/qrpaymentpage.dart';
+import 'package:flutter_application_1/pages/update_service/upgrade_service.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -72,6 +73,16 @@ class CustomDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => QRPaymentPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.upgrade),
+            title: const Text('Upgrade Services'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UpgradeServicePage()),
               );
             },
           ),

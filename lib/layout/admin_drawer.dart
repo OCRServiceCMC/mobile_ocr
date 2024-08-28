@@ -4,6 +4,7 @@ import 'package:flutter_application_1/pages/admin/admin_view_user.dart';
 import 'package:flutter_application_1/FAQ/admin_faq_page.dart';
 import 'package:flutter_application_1/pages/home/admin_home.dart';
 import 'package:flutter_application_1/pages/payment/qrpaymentpage.dart';
+import 'package:flutter_application_1/pages/update_service/upgrade_service.dart';
 
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({super.key});
@@ -63,6 +64,16 @@ class AdminDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => QRPaymentPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.upgrade),
+            title: const Text('Upgrade Services'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UpgradeServicePage()),
               );
             },
           ),

@@ -1,6 +1,7 @@
 // lib/layout/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/admin/admin_view_user.dart';
+import 'package:flutter_application_1/FAQ/admin_faq_page.dart';
 import 'package:flutter_application_1/pages/home/admin_home.dart';
 
 class AdminDrawer extends StatelessWidget {
@@ -44,7 +45,16 @@ class AdminDrawer extends StatelessWidget {
               );
             },
           ),
-        
+          ListTile(
+            leading: const Icon(Icons.question_answer),
+            title: const Text('FAQ'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminFAQPage()),
+              );
+            },
+          ),
         ],
       ),
     );

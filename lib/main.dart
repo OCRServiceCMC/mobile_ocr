@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp( 
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -34,10 +34,10 @@ class MyApp extends StatelessWidget {
 
 //TODO: Front End Mobile. '?' là chưa làm.
 // Login, Register (Thành)
-//? View User Account
-//? View File Storage
+// View User Account
+// View File Storage
 // Home Page
-//? Page Đăng Ảnh
+// Page Đăng Ảnh
 //? Page Nạp Tiền
 //? Page PDF
 
@@ -51,3 +51,5 @@ class MyApp extends StatelessWidget {
 //? Page Convert File
 //? Page Upload File
 //? Page Edit File  (nếu có)
+
+//! Fix bug, duplicated name when user change name in profile page. Because user loggin by user name

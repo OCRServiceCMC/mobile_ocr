@@ -1,5 +1,6 @@
 // lib/layout/custom_drawer.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/FAQ/user_faq_page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/upload_file_page.dart';
 import 'package:flutter_application_1/pages/ocr_page/imagetobase64page.dart';
 import 'package:flutter_application_1/pages/uploaded_files/folder_management_page.dart';
@@ -51,6 +52,16 @@ class CustomDrawer extends StatelessWidget {
             title: const Text('Image To Base64'),
             onTap: () {
               Navigator.pushNamed(context, '/image-toBase64');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.question_answer),
+            title: const Text('FAQ'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FAQPage()),
+              );
             },
           ),
         ],

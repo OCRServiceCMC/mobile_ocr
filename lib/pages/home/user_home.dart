@@ -207,13 +207,15 @@ class _UserHomePageState extends State<UserHomePage> {
                   _buildDetailedInfoCard(
                     title: 'Requests Overview',
                     description: 'You have $remainingRequests requests remaining out of $totalRequests.',
-                    progress: remainingRequests / totalRequests,
+                    progress: totalRequests > 0 ? remainingRequests / totalRequests : 0.0,
                   ),
                   const SizedBox(height: 20),
                   _buildDetailedInfoCard(
                     title: 'Storage Usage',
                     description: 'You have used ${usedStorage.toStringAsFixed(2)} MB out of ${availableStorage.toStringAsFixed(2)} MB available.',
-                    progress: usedStorage / (usedStorage + availableStorage),
+                    progress: (usedStorage + availableStorage) > 0
+                        ? usedStorage / (usedStorage + availableStorage)
+                        : 0.0,
                   ),
                   const SizedBox(height: 20),
                   _buildUpgradeBanner(),
@@ -277,6 +279,9 @@ class _UserHomePageState extends State<UserHomePage> {
     required String description,
     required double progress,
   }) {
+    // Kiểm tra xem progress có hợp lệ không (không phải là NaN hoặc Infinity)
+    double safeProgress = progress.isNaN || progress.isInfinite ? 0.0 : progress;
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       elevation: 4,
@@ -296,7 +301,7 @@ class _UserHomePageState extends State<UserHomePage> {
             ),
             const SizedBox(height: 15),
             LinearProgressIndicator(
-              value: progress,
+              value: safeProgress,
               backgroundColor: Colors.grey[300],
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
@@ -305,6 +310,7 @@ class _UserHomePageState extends State<UserHomePage> {
       ),
     );
   }
+
 
   // Hàm xây dựng banner nâng cấp dịch vụ
   Widget _buildUpgradeBanner() {

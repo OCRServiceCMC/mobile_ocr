@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data'; // Import thêm cho Uint8List
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
@@ -20,9 +20,9 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
   bool _isUploading = false;
   bool _isLoading = true;
   List<Map<String, dynamic>> _userFolders = [];
-  List<Map<String, dynamic>> _folderFiles = []; // Danh sách tệp của thư mục hiện tại
-  int? _currentFolderId; // ID của thư mục hiện tại
-  String? _newFolderName; // Biến lưu tên mới của thư mục
+  List<Map<String, dynamic>> _folderFiles = [];
+  int? _currentFolderId;
+  String? _newFolderName;
 
   Future<String?> _getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -128,11 +128,12 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
-  Future<void> _selectFileFromStorage() async {
+  Future<void> _selectFilesFromStorage() async {
     PermissionStatus status = await Permission.storage.request();
 
     if (status.isGranted) {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true, // Cho phép chọn nhiều tệp
         type: FileType.any,
       );
 
@@ -141,9 +142,9 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
           _selectedFiles = result.files;
         });
 
-        print('Selected file: ${_selectedFiles!.first.name}');
+        print('Selected files: ${_selectedFiles!.map((f) => f.name).join(", ")}');
       } else {
-        print('No file selected');
+        print('No files selected');
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,21 +154,17 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
-  // Hàm để xác định loại MIME từ phần mở rộng của tệp
-  String _getMimeType(String? extension) {
-    switch (extension) {
-      case 'pdf':
-        return 'application/pdf';
-      case 'png':
-        return 'image/png';
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      default:
-        return 'application/octet-stream';
+  // Hàm để chuyển đổi base64 thành Uint8List
+  Uint8List _base64ToImage(String base64String) {
+    try {
+      return base64Decode(base64String);
+    } catch (e) {
+      print("Error decoding base64: $e");
+      return Uint8List(0); // Trả về một mảng trống để tránh crash ứng dụng
     }
   }
 
+  // Hàm upload thư mục với nhiều file (Tạo folder mới)
   Future<void> _uploadFolder() async {
     if (_selectedFiles == null || _selectedFiles!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -231,6 +228,90 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
     }
   }
 
+  // Hàm upload các file mới vào folder đã có (Cập nhật file cho folder)
+  Future<void> _uploadFilesToFolder() async {
+    if (_selectedFiles == null || _selectedFiles!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No files selected to upload.')),
+      );
+      return;
+    }
+
+    if (_currentFolderId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No folder selected.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    String? token = await _getToken();
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token found.')),
+      );
+      return;
+    }
+
+    String url = 'http://10.0.2.2:8081/api/user/folders/$_currentFolderId/upload';
+
+    var request = http.MultipartRequest('POST', Uri.parse(url))
+      ..headers['Authorization'] = 'Bearer $token';
+
+    for (var file in _selectedFiles!) {
+      // Xác định loại MIME dựa trên phần mở rộng của tệp
+      String mimeType = _getMimeType(file.extension);
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'files',
+          file.path!,
+          contentType: MediaType.parse(mimeType),
+        ),
+      );
+    }
+
+    try {
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Files uploaded successfully!')),
+        );
+        _fetchFolderFiles(_currentFolderId!);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to upload files.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during file upload.')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  String _getMimeType(String? extension) {
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'png':
+        return 'image/png';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   Future<void> _deleteFolder(int folderId) async {
     String? token = await _getToken();
     if (token == null) {
@@ -286,7 +367,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File deleted successfully!')),
         );
-        _fetchFolderFiles(folderId); // Refresh the folder files
+        _fetchFolderFiles(folderId);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to delete file.')),
@@ -317,7 +398,6 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
 
     String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
 
-    // Xác định loại MIME dựa trên phần mở rộng của tệp
     String mimeType = _getMimeType(_selectedFiles!.first.extension);
 
     var request = http.MultipartRequest('PUT', Uri.parse(url))
@@ -337,7 +417,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('File updated successfully!')),
         );
-        _fetchFolderFiles(folderId); // Làm mới danh sách tệp sau khi cập nhật
+        _fetchFolderFiles(folderId);
       } else {
         String responseBody = await response.stream.bytesToString();
         print("Update failed: $responseBody");
@@ -382,7 +462,7 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Folder updated successfully!')),
         );
-        _fetchUserFolders(); // Cập nhật danh sách thư mục sau khi cập nhật tên thư mục
+        _fetchUserFolders();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update folder.')),
@@ -457,48 +537,70 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _currentFolderId == null
-            ? ListView.builder(
-          itemCount: _userFolders.length,
-          itemBuilder: (context, index) {
-            var folder = _userFolders[index];
-            String folderName = folder['folderName'] ?? 'Unknown Folder';
-            int? folderId = folder['folderID'];
+            ? Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _userFolders.length,
+                itemBuilder: (context, index) {
+                  var folder = _userFolders[index];
+                  String folderName = folder['folderName'] ?? 'Unknown Folder';
+                  int? folderId = folder['folderID'];
 
-            if (folderId == null) {
-              return const ListTile(
-                title: Text('Invalid Folder'),
-                subtitle: Text('Folder ID is null'),
-              );
-            }
+                  if (folderId == null) {
+                    return const ListTile(
+                      title: Text('Invalid Folder'),
+                      subtitle: Text('Folder ID is null'),
+                    );
+                  }
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: const Icon(Icons.folder, size: 40),
-                title: Text(
-                  folderName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.visibility, color: Colors.green),
-                      onPressed: () => _fetchFolderFiles(folderId),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      leading: const Icon(Icons.folder, size: 40),
+                      title: Text(
+                        folderName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.visibility, color: Colors.green),
+                            onPressed: () => _fetchFolderFiles(folderId),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteFolder(folderId),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showUpdateFolderDialog(folderId),
+                          ),
+                        ],
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteFolder(folderId),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => _showUpdateFolderDialog(folderId),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _selectFilesFromStorage,
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Select Files from Storage'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _isUploading ? null : _uploadFolder,
+              icon: _isUploading
+                  ? const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+                  : const Icon(Icons.cloud_upload),
+              label: const Text('Upload Folder'),
+            ),
+          ],
         )
             : Column(
           children: [
@@ -509,6 +611,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
                   var file = _folderFiles[index];
                   String fileName = file['fileName'] ?? 'Unknown File';
                   int? fileId = file['fileID'];
+                  String? base64Thumbnail = file['thumbnail']; // Thêm thumbnail
+                  String fileType = file['fileType'];
 
                   if (fileId == null) {
                     return const ListTile(
@@ -520,7 +624,15 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
-                      leading: const Icon(Icons.insert_drive_file, size: 40),
+                      leading: fileType == 'PDF'
+                          ? const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
+                          : base64Thumbnail != null && base64Thumbnail.isNotEmpty
+                          ? Image.memory(
+                        _base64ToImage(base64Thumbnail), // Sử dụng hình ảnh thu nhỏ
+                        width: 50,
+                        height: 50,
+                      )
+                          : const Icon(Icons.insert_drive_file, size: 40),
                       title: Text(
                         fileName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -545,11 +657,20 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton.icon(
-              onPressed: _selectFileFromStorage,
+              onPressed: _selectFilesFromStorage,
               icon: const Icon(Icons.upload_file),
-              label: const Text('Select File from Storage'),
+              label: const Text('Upload Files to Folder'),
             ),
             const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _isUploading ? null : _uploadFilesToFolder,
+              icon: _isUploading
+                  ? const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+                  : const Icon(Icons.cloud_upload),
+              label: const Text('Upload Files'),
+            ),
           ],
         ),
       ),

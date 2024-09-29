@@ -10,7 +10,8 @@ pipeline {
         stage('Install Flutter') {
             steps {
                 bat '''
-                choco install flutter --version=<specific_version> -y
+                choco install flutter -y
+                set PATH=%PATH%;C:\\tools\\flutter\\bin
                 flutter doctor
                 '''
             }

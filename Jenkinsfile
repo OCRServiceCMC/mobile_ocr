@@ -10,7 +10,7 @@ pipeline {
         stage('Install Flutter') {
             steps {
                 bat '''
-                choco install flutter -y
+                choco install flutter --ignorechecksums -y
                 set PATH=%PATH%;C:\\tools\\flutter\\bin
                 flutter doctor
                 '''

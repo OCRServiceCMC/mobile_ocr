@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ANDROID_HOME = 'C:\\path\\to\\android-sdk'
+        ANDROID_HOME = 'C:\Users\yunom\AppData\Local\Android\Sdk
         PATH = "${ANDROID_HOME}\\tools;${ANDROID_HOME}\\platform-tools;${env.PATH}"
     }
 

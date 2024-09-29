@@ -11,7 +11,7 @@ pipeline {
             steps {
                 bat '''
                 choco install flutter --ignorechecksums -y
-                set PATH=%PATH%;C:\\tools\\flutter\\bin
+                refreshenv
                 flutter doctor
                 '''
             }

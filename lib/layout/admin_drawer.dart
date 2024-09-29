@@ -20,10 +20,10 @@ class AdminDrawer extends StatelessWidget {
               color: Colors.blue,
             ),
             child: Text(
-              'Drawer Header',
+              'Manager',
               style: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
+                color: Colors.white,
+                fontSize: 36
               ),
             ),
           ),

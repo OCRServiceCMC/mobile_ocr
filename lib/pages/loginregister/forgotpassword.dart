@@ -19,7 +19,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       _message = null;
     });
 
-    final url = Uri.parse('http://10.0.2.2:8081/api/auth/forgot-password?email=$email');
+    // final url = Uri.parse('http://10.0.2.2:8081/api/auth/forgot-password?email=$email');
+    final url = Uri.parse('http://103.145.63.232:8081/api/auth/forgot-password?email=$email');
 
     try {
       final response = await http.post(url);

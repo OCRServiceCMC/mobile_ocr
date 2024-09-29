@@ -133,7 +133,8 @@ class _QRPaymentPageState extends State<QRPaymentPage> {
   Future<void> _processDeposit(int depositAmount, String token) async {
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:8081/api/transactions/deposit/$depositAmount"),
+        // Uri.parse("http://10.0.2.2:8081/api/transactions/deposit/$depositAmount"),
+        Uri.parse("http://103.145.63.232:8081/api/transactions/deposit/$depositAmount"),
         headers: {
           "Authorization": "Bearer $token",
         },
@@ -196,8 +197,8 @@ class _QRPaymentPageState extends State<QRPaymentPage> {
               items: [
                 DropdownMenuItem(value: 0, child: Text("Select Amount")),
                 DropdownMenuItem(value: 2000, child: Text("2000 VNĐ")),
-                DropdownMenuItem(value: 3000, child: Text("3000 VNĐ")),
                 DropdownMenuItem(value: 5000, child: Text("5000 VNĐ")),
+                DropdownMenuItem(value: 10000, child: Text("10000 VNĐ")),
               ],
               onChanged: (value) {
                 setState(() {

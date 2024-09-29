@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // Thêm import để sử dụng Clipboard
 
 class ImageToBase64Page extends StatefulWidget {
   const ImageToBase64Page({super.key});
@@ -14,8 +14,9 @@ class ImageToBase64Page extends StatefulWidget {
 }
 
 class _ImageToBase64PageState extends State<ImageToBase64Page> {
-  String? _base64String;
+  File? _selectedImage;
   String? _ocrResult;
+  bool _isLoading = false; // Thêm biến trạng thái để kiểm soát hiệu ứng loading
 
   Future<String?> _getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -27,6 +28,10 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
 
     if (result != null) {
       File file = File(result.files.single.path!);
+      setState(() {
+        _selectedImage = file; // Hiển thị ảnh preview
+      });
+
       final token = await _getToken();
       if (token == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -35,7 +40,7 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
         return;
       }
 
-      final url = Uri.parse('http://10.0.2.2:8081/api/converter/image-to-base64');
+      final url = Uri.parse('http://103.145.63.232:8081/api/converter/image-to-base64');
 
       final request = http.MultipartRequest('POST', url)
         ..headers['Authorization'] = 'Bearer $token'
@@ -45,10 +50,9 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
 
       if (response.statusCode == 200) {
         final responseData = await http.Response.fromStream(response);
-        setState(() {
-          _base64String = responseData.body;
-          _ocrResult = null; // Reset OCR result when a new image is converted
-        });
+        String base64String = responseData.body;
+
+        _convertBase64ToText(base64String); // Tự động gọi API OCR
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to convert image: ${response.statusCode}')),
@@ -57,14 +61,7 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
     }
   }
 
-  Future<void> _convertBase64ToText() async {
-    if (_base64String == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No Base64 string available to convert.')),
-      );
-      return;
-    }
-
+  Future<void> _convertBase64ToText(String base64String) async {
     final token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,7 +70,11 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:8081/api/ocr/convertBase64ToText');
+    setState(() {
+      _isLoading = true; // Bắt đầu loading
+    });
+
+    final url = Uri.parse('http://103.145.63.232:8081/api/ocr/convertBase64ToText');
 
     final response = await http.post(
       url,
@@ -82,7 +83,7 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'contentBase64': _base64String,
+        'contentBase64': base64String,
       }),
     );
 
@@ -91,32 +92,14 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
       if (responseData['statusCode'] == 200) {
         try {
           String rawJson = responseData['data']['json_ocr_out'];
-
-          // Bước 1: Loại bỏ các ký tự escape không cần thiết trước các dấu "
           rawJson = rawJson.replaceAll(r'\"', '"');
-
-          // Bước 2: Xử lý những dấu " không mong đợi trong chuỗi
-          rawJson = rawJson.replaceAllMapped(RegExp(r'(?<!\\)"(?![:,\]}])'), (match) {
-            return r'\"'; // Thay thế dấu " không mong đợi bằng \" để thoát đúng cách
-          });
-
-          // Bước 3: Thay thế các dấu ' bằng dấu "
+          rawJson = rawJson.replaceAllMapped(RegExp(r'(?<!\\)"(?![:,\]}])'), (match) => r'\"');
           rawJson = rawJson.replaceAll("'", '"');
-
-          // Bước 4: Giải mã các escape sequences
           rawJson = rawJson.replaceAll(r'\\n', '\n');
           rawJson = rawJson.replaceAll(r'\\t', '\t');
-
-          // Parse JSON thành Map
           final Map<String, dynamic> jsonMap = jsonDecode(rawJson);
-
-          // Trích xuất dữ liệu từ key "doc"
           String docContent = jsonMap['doc'] ?? '';
-
-          // Bước 5: Làm sạch và loại bỏ các ký tự không mong muốn trong "doc"
-          docContent = docContent.replaceAll('\\n', '\n'); // Thay thế escape sequence \\n thành xuống dòng
-          docContent = docContent.replaceAll('\\t', ' ');  // Thay thế escape sequence \\t thành khoảng trắng
-          docContent = docContent.replaceAllMapped(RegExp(r'\s+'), (match) => ' '); // Loại bỏ khoảng trắng dư thừa
+          docContent = docContent.replaceAll('\\n', '\n').replaceAll('\\t', ' ').replaceAllMapped(RegExp(r'\s+'), (match) => ' ');
 
           setState(() {
             _ocrResult = docContent;
@@ -125,9 +108,7 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
           setState(() {
             _ocrResult = 'Failed to parse OCR result: $e';
           });
-          print('Error parsing JSON: $e');
         }
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('OCR conversion failed: ${responseData['statusValue']}')),
@@ -138,17 +119,13 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
         SnackBar(content: Text('Failed to convert Base64 to text: ${response.statusCode}')),
       );
     }
+
+    setState(() {
+      _isLoading = false; // Kết thúc loading
+    });
   }
 
-  void _copyBase64ToClipboard() {
-    if (_base64String != null) {
-      Clipboard.setData(ClipboardData(text: _base64String!));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Base64 string copied to clipboard')),
-      );
-    }
-  }
-
+  // Hàm copy OCR result
   void _copyOcrResultToClipboard() {
     if (_ocrResult != null) {
       Clipboard.setData(ClipboardData(text: _ocrResult!));
@@ -162,7 +139,7 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Convert Image to Base64 & OCR'),
+        title: const Text('Chuyển đổi văn bản số'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -171,44 +148,19 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
           children: <Widget>[
             ElevatedButton(
               onPressed: _convertImageToBase64,
-              child: const Text('Select and Convert Image'),
+              child: const Text('Chọn ảnh văn bản'),
             ),
             const SizedBox(height: 20),
-            if (_base64String != null)
+            if (_selectedImage != null)
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: SelectableText(
-                            _base64String!,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _copyBase64ToClipboard,
-                        child: const Text('Copy Base64'),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _convertBase64ToText,
-                        child: const Text('Convert Base64 to Text'),
-                      ),
-                    ],
-                  ),
-                ),
+                child: Image.file(_selectedImage!),
               ),
             const SizedBox(height: 20),
-            if (_ocrResult != null)
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(), // Hiển thị loading khi đang chờ API
+              ),
+            if (!_isLoading && _ocrResult != null)
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(8.0),
@@ -242,3 +194,4 @@ class _ImageToBase64PageState extends State<ImageToBase64Page> {
     );
   }
 }
+

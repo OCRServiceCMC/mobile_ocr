@@ -36,7 +36,8 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
         throw Exception('No token found');
       }
 
-      final url = Uri.parse('http://10.0.2.2:8081/api/admin/users/${widget.userID}');
+      //final url = Uri.parse('http://10.0.2.2:8081/api/admin/users/${widget.userID}');
+      final url = Uri.parse('http://103.145.63.232:8081/api/admin/users/${widget.userID}');
       final response = await http.get(
         url,
         headers: {
@@ -78,7 +79,8 @@ class _ViewUserDetailState extends State<ViewUserDetail> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:8081/api/admin/users/${widget.userID}');
+    // final url = Uri.parse('http://10.0.2.2:8081/api/admin/users/${widget.userID}');
+    final url = Uri.parse('http://103.145.63.232:8081/api/admin/users/${widget.userID}');
     final response = await http.put(
       url,
       headers: {

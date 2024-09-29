@@ -54,7 +54,8 @@ class _UserAccountPageState extends State<UserAccountPage> {
         throw Exception('No token found');
       }
 
-      final url = Uri.parse('http://10.0.2.2:8081/api/auth/user-details');
+      // final url = Uri.parse('http://10.0.2.2:8081/api/auth/user-details');
+      final url = Uri.parse('http://103.145.63.232:8081/api/auth/user-details');
       final response = await http.get(
         url,
         headers: {
@@ -106,7 +107,8 @@ class _UserAccountPageState extends State<UserAccountPage> {
         throw Exception('No token found');
       }
 
-      final url = Uri.parse('http://10.0.2.2:8081/api/user/profile');
+      // final url = Uri.parse('http://10.0.2.2:8081/api/user/profile');
+      final url = Uri.parse('http://103.145.63.232:8081/api/user/profile');
       final response = await http.put(
         url,
         headers: {

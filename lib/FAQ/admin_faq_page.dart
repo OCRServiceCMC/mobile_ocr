@@ -17,7 +17,8 @@ class _AdminFAQPageState extends State<AdminFAQPage> {
   static final _logger = Logger('AdminFAQPage');
 
   List<Question> questions = [];
-  final String apiUrl = 'http://10.0.2.2:8081/api';
+  // final String apiUrl = 'http://10.0.2.2:8081/api';
+  final String apiUrl = 'http://103.145.63.232:8081/api';
 
   @override
   void initState() {

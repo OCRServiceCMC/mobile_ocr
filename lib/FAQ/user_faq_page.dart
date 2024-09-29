@@ -15,7 +15,8 @@ class FAQPage extends StatefulWidget {
 class _FAQPageState extends State<FAQPage> {
   static final _logger = Logger('FAQPage');
   List<Question> questions = [];
-  final String apiUrl = 'http://10.0.2.2:8081/api';
+  // final String apiUrl = 'http://10.0.2.2:8081/api';
+  final String apiUrl = 'http://103.145.63.232:8081/api';
   final TextEditingController _questionController = TextEditingController();
   late String _currentUserID;
 

@@ -43,7 +43,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/auth/user/files/list';
+    // String url = 'http://10.0.2.2:8081/api/auth/user/files/list';
+    String url = 'http://103.145.63.232:8081/api/auth/user/files/list';
 
     try {
       var response = await http.get(
@@ -85,45 +86,26 @@ class _UploadFilePageState extends State<UploadFilePage> {
   }
 
   Future<void> _selectFileFromStorage() async {
-    PermissionStatus status = await Permission.storage.request();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.any);
 
-    if (status.isGranted) {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-      );
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedFile = result.files.first;
+        _selectedFileName = _selectedFile?.name;
+      });
 
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          _selectedFile = result.files.first;
-          _selectedFileName = _selectedFile?.name;
-        });
-
-        if (!_isValidFileType(_selectedFileName!)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Only JPG, PNG, and PDF files are allowed.')),
-          );
-          setState(() {
-            _selectedFile = null;
-            _selectedFileName = null;
-          });
-          return;
-        }
-
-        print('File selected: $_selectedFileName');
-        print('File path: ${_selectedFile?.path}');
-      } else {
-        setState(() {
-          _selectedFileName = 'No file selected';
-        });
-        print('No file selected');
-      }
+      print('File selected: $_selectedFileName');
+      print('File path: ${_selectedFile?.path}');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permission denied to access storage.')),
-      );
-      print('Permission denied');
+      setState(() {
+        _selectedFileName = 'No file selected';
+      });
+      print('No file selected');
     }
   }
+
+
+
 
   Uint8List _base64ToImage(String base64String) {
     try {
@@ -144,7 +126,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    // String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    String url = 'http://103.145.63.232:8081/api/auth/user/files/$fileId';
 
     try {
       var response = await http.get(
@@ -238,7 +221,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/auth/user/files/upload';
+    // String url = 'http://10.0.2.2:8081/api/auth/user/files/upload';
+    String url = 'http://103.145.63.232:8081/api/auth/user/files/upload';
 
     String mimeType = _selectedFile!.extension == 'pdf'
         ? 'application/pdf'
@@ -291,7 +275,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    // String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    String url = 'http://103.145.63.232:8081/api/auth/user/files/$fileId';
 
     try {
       var response = await http.delete(
@@ -346,7 +331,8 @@ class _UploadFilePageState extends State<UploadFilePage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    // String url = 'http://10.0.2.2:8081/api/auth/user/files/$fileId';
+    String url = 'http://103.145.63.232:8081/api/auth/user/files/$fileId';
 
     String mimeType = _selectedFile!.extension == 'pdf'
         ? 'application/pdf'

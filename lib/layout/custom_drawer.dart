@@ -22,7 +22,7 @@ class CustomDrawer extends StatelessWidget {
               color: Colors.blue,
             ),
             child: Text(
-              'Dashboard',
+              'Dịch vụ OCR trực tuyến',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -31,7 +31,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.home),
-            title: const Text('Home'),
+            title: const Text('Trang chủ'),
             onTap: () {
               Navigator.push(
                 context,
@@ -48,28 +48,21 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.folder),
-            title: const Text('Manage Folders'),
+            title: const Text('Quản lý Folders'),
             onTap: (){
               Navigator.pushNamed(context, '/upload-folder');
             }
           ),
           ListTile(
-            leading: const Icon(Icons.upload_file),
-            title: const Text('Image To Base64'),
+            leading: const Icon(Icons.document_scanner),
+            title: const Text('OCR ảnh văn bản'),
             onTap: () {
               Navigator.pushNamed(context, '/image-toBase64');
             },
           ),
           ListTile(
-            leading: const Icon(Icons.picture_as_pdf),
-            title: const Text('PDF Operations'),
-            onTap: () {
-              Navigator.pushNamed(context, '/pdf-operations');
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.question_answer),
-            title: const Text('Q&A'),
+            title: const Text('Hỗ trợ'),
             onTap: () {
               Navigator.push(
                 context,
@@ -79,7 +72,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.qr_code),
-            title: const Text('QR Payment'),
+            title: const Text('Thanh toán QR'),
             onTap: () {
               Navigator.push(
                 context,
@@ -89,7 +82,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.upgrade),
-            title: const Text('Upgrade Services'),
+            title: const Text('Nâng cấp dịch vụ'),
             onTap: () {
               Navigator.push(
                 context,

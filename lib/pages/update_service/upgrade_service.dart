@@ -39,7 +39,8 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8081/api/transactions/gpUser'),
+        // Uri.parse('http://10.0.2.2:8081/api/transactions/gpUser'),
+        Uri.parse('http://103.145.63.232:8081/api/transactions/gpUser'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -70,12 +71,14 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
 
     try {
       final requestResponse = await http.get(
-        Uri.parse('http://10.0.2.2:8081/api/transactions/request-info'),
+        // Uri.parse('http://10.0.2.2:8081/api/transactions/request-info'),
+        Uri.parse('http://103.145.63.232:8081/api/transactions/request-info'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       final storageResponse = await http.get(
-        Uri.parse('http://10.0.2.2:8081/api/transactions/storage-info'),
+        // Uri.parse('http://10.0.2.2:8081/api/transactions/storage-info'),
+        Uri.parse('http://103.145.63.232:8081/api/transactions/storage-info'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -111,7 +114,8 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8081/api/transactions/upgrade-storage/$amountGP'),
+        // Uri.parse('http://10.0.2.2:8081/api/transactions/upgrade-storage/$amountGP'),
+        Uri.parse('http://103.145.63.232:8081/api/transactions/upgrade-storage/$amountGP'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -153,7 +157,8 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8081/api/transactions/upgrade-requests/$amountGP'),
+        // Uri.parse('http://10.0.2.2:8081/api/transactions/upgrade-requests/$amountGP'),
+        Uri.parse('http://103.145.63.232:8081/api/transactions/upgrade-requests/$amountGP'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -192,6 +197,10 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
   }
 
   Widget _buildServiceInfo() {
+    if (loading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     if (requestInfo == null || storageInfo == null) {
       return Center(child: CircularProgressIndicator());
     }
@@ -241,7 +250,9 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
       appBar: AppBar(
         title: Text('Upgrade Service'),
       ),
-      body: Padding(
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +262,8 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
                 errorMessage!,
                 style: TextStyle(color: Colors.red),
               ),
-            if (requestInfo != null && storageInfo != null) _buildServiceInfo(),
+            SizedBox(height: 20),
+            _buildServiceInfo(),
             SizedBox(height: 20),
             TextField(
               decoration: InputDecoration(
@@ -290,10 +302,6 @@ class _UpgradeServicePageState extends State<UpgradeServicePage> {
                 ),
               ],
             ),
-            if (loading) ...[
-              SizedBox(height: 20),
-              Center(child: CircularProgressIndicator()),
-            ],
           ],
         ),
       ),

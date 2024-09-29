@@ -31,7 +31,7 @@ class _UserHomePageState extends State<UserHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Home Page',
+        title: 'Trang chủ',
         actions: [
           TextButton(
             onPressed: () {
@@ -46,9 +46,20 @@ class _UserHomePageState extends State<UserHomePage> {
                 });
               }
             },
-            child: Text(
-              _isLoggedIn ? 'Login' : 'Logout',
-              style: const TextStyle(color: Colors.black),
+            child: IconButton(
+              icon: Icon(_isLoggedIn ? Icons.login : Icons.logout, color: Colors.black),
+              onPressed: () {
+                if (_isLoggedIn) {
+                  _toggleLoginState();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  ).then((_) {
+                    _toggleLoginState();
+                  });
+                }
+              },
             ),
           ),
         ],
@@ -64,7 +75,7 @@ class _UserHomePageState extends State<UserHomePage> {
               height: 200,
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('lib/assets/OCR-Software.jpg'), // Hình minh họa
+                  image: AssetImage('lib/assets/OCR-Software.jpg'),// Hình minh họa
                   fit: BoxFit.cover,
                 ),
               ),
@@ -72,7 +83,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 color: Colors.black.withOpacity(0.4),
                 child: const Center(
                   child: Text(
-                    'Welcome to Our App',
+                    'Dịch vụ OCR',
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -98,7 +109,7 @@ class _UserHomePageState extends State<UserHomePage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'Explore the amazing features of our app. Whether you want to upload files, manage settings, or discover exclusive content, we have everything covered.',
+                    'Khám phá các tính năng tuyệt vời của ứng dụng của chúng tôi. Cho dù bạn muốn tải tệp lên, quản lý cài đặt hay khám phá nội dung độc quyền, chúng tôi sẽ đáp ứng được mọi nhu cầu.',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.black54,
@@ -117,15 +128,15 @@ class _UserHomePageState extends State<UserHomePage> {
                   _buildFeatureCard(
                     icon: Icons.upload_file,
                     title: 'Upload Files',
-                    description: 'Easily upload and manage your files.',
+                    description: 'Dễ dàng tải và quản lý File.',
                     onTap: () {
                       // Navigate to upload files page
                     },
                   ),
                   _buildFeatureCard(
-                    icon: Icons.settings,
-                    title: 'Settings',
-                    description: 'Manage your account settings.',
+                    icon: Icons.document_scanner,
+                    title: 'OCR',
+                    description: 'Chuyển đổi văn bản số.',
                     onTap: () {
                       // Navigate to settings page
                     },
@@ -148,12 +159,12 @@ class _UserHomePageState extends State<UserHomePage> {
                 width: double.infinity,
                 height: 180,
                 child: Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withOpacity(0.6),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const <Widget>[
                       Text(
-                        'Explore Premium Features',
+                        'Khám phá các tính năng cao cấp',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -162,7 +173,7 @@ class _UserHomePageState extends State<UserHomePage> {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        'Upgrade to premium for more benefits!',
+                        'Nâng cấp lên cao cấp để có nhiều lợi ích hơn!',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white70,
@@ -181,7 +192,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const <Widget>[
                   Text(
-                    'What Our Users Say',
+                    'Người dùng của chúng tôi nói gì',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -189,7 +200,7 @@ class _UserHomePageState extends State<UserHomePage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    '"This app has revolutionized the way I manage my tasks. It\'s simple, intuitive, and extremely powerful!"',
+                    '"Ứng dụng này đã cách mạng hóa cách tôi quản lý công việc của mình. Nó đơn giản, trực quan và cực kỳ mạnh mẽ!"',
                     style: TextStyle(
                       fontSize: 16,
                       fontStyle: FontStyle.italic,

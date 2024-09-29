@@ -32,7 +32,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person), // Changed icon to person to represent account
-          label: 'Account',          // Changed label to Account
+          label: 'Tài khoản',          // Changed label to Account
         ),
       ],
     );

@@ -45,8 +45,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/all';
-
+    // String url = 'http://10.0.2.2:8081/api/user/folders/all';
+    String url = 'http://103.145.63.232:8081/api/user/folders/all';
     try {
       var response = await http.get(
         Uri.parse(url),
@@ -97,7 +97,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$folderId/files';
 
     try {
       var response = await http.get(
@@ -129,30 +130,48 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
   }
 
   Future<void> _selectFilesFromStorage() async {
-    PermissionStatus status = await Permission.storage.request();
+    // Bỏ kiểm tra quyền và chỉ sử dụng FilePicker
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true, // Cho phép chọn nhiều tệp
+      type: FileType.any,
+    );
 
-    if (status.isGranted) {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, // Cho phép chọn nhiều tệp
-        type: FileType.any,
-      );
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedFiles = result.files;
+      });
 
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          _selectedFiles = result.files;
-        });
-
-        print('Selected files: ${_selectedFiles!.map((f) => f.name).join(", ")}');
-      } else {
-        print('No files selected');
-      }
+      print('Selected files: ${_selectedFiles!.map((f) => f.name).join(", ")}');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permission denied to access storage.')),
-      );
-      print('Permission denied');
+      print('No files selected');
     }
   }
+
+  // Future<void> _selectFilesFromStorage() async {
+  //   PermissionStatus status = await Permission.storage.request();
+  //
+  //   if (status.isGranted) {
+  //     FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //       allowMultiple: true, // Cho phép chọn nhiều tệp
+  //       type: FileType.any,
+  //     );
+  //
+  //     if (result != null && result.files.isNotEmpty) {
+  //       setState(() {
+  //         _selectedFiles = result.files;
+  //       });
+  //
+  //       print('Selected files: ${_selectedFiles!.map((f) => f.name).join(", ")}');
+  //     } else {
+  //       print('No files selected');
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Permission denied to access storage.')),
+  //     );
+  //     print('Permission denied');
+  //   }
+  // }
 
   // Hàm để chuyển đổi base64 thành Uint8List
   Uint8List _base64ToImage(String base64String) {
@@ -185,7 +204,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/upload';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/upload';
+    String url = 'http://103.145.63.232:8081/api/user/folders/upload';
 
     var request = http.MultipartRequest('POST', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'
@@ -256,7 +276,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$_currentFolderId/upload';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$_currentFolderId/upload';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$_currentFolderId/upload';
 
     var request = http.MultipartRequest('POST', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token';
@@ -321,7 +342,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$folderId';
 
     try {
       var response = await http.delete(
@@ -355,7 +377,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$folderId/files/$fileId';
 
     try {
       var response = await http.delete(
@@ -396,7 +419,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$folderId/files/$fileId';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$folderId/files/$fileId';
 
     String mimeType = _getMimeType(_selectedFiles!.first.extension);
 
@@ -449,7 +473,8 @@ class _FolderManagementPageState extends State<FolderManagementPage> {
       return;
     }
 
-    String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
+    // String url = 'http://10.0.2.2:8081/api/user/folders/$folderId';
+    String url = 'http://103.145.63.232:8081/api/user/folders/$folderId';
 
     var request = http.MultipartRequest('PUT', Uri.parse(url))
       ..headers['Authorization'] = 'Bearer $token'

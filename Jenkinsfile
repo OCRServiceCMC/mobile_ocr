@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ANDROID_HOME = 'C:\\path\\to\\android-sdk'  // Cập nhật đường dẫn đến Android SDK của bạn
+        ANDROID_HOME = 'C:\\path\\to\\android-sdk'
         PATH = "${ANDROID_HOME}\\tools;${ANDROID_HOME}\\platform-tools;${env.PATH}"
     }
 
@@ -22,13 +22,11 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
                 bat 'C:\\tools\\flutter\\bin\\flutter pub get'
             }
         }
         stage('Build APK') {
             steps {
-                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
                 bat 'C:\\tools\\flutter\\bin\\flutter build apk --release'
             }
         }

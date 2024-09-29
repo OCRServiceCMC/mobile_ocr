@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        jdk 'JDK11'  // Thay thế bằng phiên bản JDK mà bạn đã cài đặt trong Jenkins
+        jdk 'JDK 11'  // Thay thế bằng phiên bản JDK mà bạn đã cài đặt trong Jenkins
     }
 
     environment {

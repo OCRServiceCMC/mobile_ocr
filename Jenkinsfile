@@ -12,18 +12,19 @@ pipeline {
                 bat '''
                 choco install flutter --ignorechecksums -y
                 refreshenv
-                flutter doctor
                 '''
             }
         }
         stage('Install Dependencies') {
             steps {
-                bat 'flutter pub get'
+                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
+                bat 'C:\\tools\\flutter\\bin\\flutter pub get'
             }
         }
         stage('Build APK') {
             steps {
-                bat 'flutter build apk --release'
+                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
+                bat 'C:\\tools\\flutter\\bin\\flutter build apk --release'
             }
         }
         stage('Dockerize') {

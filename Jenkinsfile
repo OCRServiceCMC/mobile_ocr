@@ -1,14 +1,18 @@
 pipeline {
     agent any
 
-    tools {
-        flutter 'Flutter'  // Đảm bảo rằng 'Flutter' đã được cấu hình trong Jenkins Tools Configuration
-    }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/OCRServiceCMC/mobile_ocr'
+            }
+        }
+        stage('Install Flutter') {
+            steps {
+                bat '''
+                choco install flutter --version=<specific_version> -y
+                flutter doctor
+                '''
             }
         }
         stage('Install Dependencies') {
@@ -25,7 +29,7 @@ pipeline {
             steps {
                 bat '''
                 REM Kiểm tra và xóa container có cùng tên nếu tồn tại
-                for /f "tokens=*" %%i in ('docker ps -aq -f "name=mobile-ocr-container"') do (
+                for /f "tokens=*" %%i in ('docker ps -aq -f "name=mobile_ocr_pipeline_container"') do (
                     docker rm -f %%i
                 )
 
@@ -35,8 +39,8 @@ pipeline {
                 )
 
                 REM Xây dựng Docker image và chạy container
-                docker build -t mobile-ocr .
-                docker run -d -p 8081:8081 --name mobile-ocr-container mobile-ocr
+                docker build -t mobile_ocr_pipeline .
+                docker run -d -p 8081:8081 --name mobile_ocr_pipeline_container mobile_ocr_pipeline
                 '''
             }
         }

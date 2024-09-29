@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'JDK11'  // Thay thế bằng phiên bản JDK mà bạn đã cài đặt trong Jenkins
+    }
+
     environment {
         ANDROID_HOME = 'C:\\Android\\android-sdk'
         PATH = "${env.PATH};${ANDROID_HOME}\\tools;${ANDROID_HOME}\\platform-tools"
@@ -22,13 +26,11 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
                 bat 'C:\\tools\\flutter\\bin\\flutter pub get'
             }
         }
         stage('Build APK') {
             steps {
-                // Sử dụng đường dẫn tuyệt đối để gọi Flutter
                 bat 'C:\\tools\\flutter\\bin\\flutter build apk --release'
             }
         }

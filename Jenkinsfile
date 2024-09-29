@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        ANDROID_HOME = 'C:\\path\\to\\android-sdk'  // Cập nhật đường dẫn đến Android SDK của bạn
+        PATH = "${ANDROID_HOME}\\tools;${ANDROID_HOME}\\platform-tools;${env.PATH}"
+    }
+
     stages {
         stage('Checkout') {
             steps {

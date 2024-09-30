@@ -41,7 +41,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.upload_file),
-            title: const Text('Upload File'),
+            title: const Text('Tải ảnh'),
             onTap: () {
               Navigator.pushNamed(context, '/upload');
             },

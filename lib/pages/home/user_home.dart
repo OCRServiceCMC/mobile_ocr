@@ -101,7 +101,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const <Widget>[
                   Text(
-                    'Get Started',
+                    'Bắt đầu',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -127,8 +127,8 @@ class _UserHomePageState extends State<UserHomePage> {
                 children: <Widget>[
                   _buildFeatureCard(
                     icon: Icons.upload_file,
-                    title: 'Upload Files',
-                    description: 'Dễ dàng tải và quản lý File.',
+                    title: 'Tải ảnh tài liệu',
+                    description: 'Quản lý File.',
                     onTap: () {
                       // Navigate to upload files page
                     },
